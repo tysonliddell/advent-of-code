@@ -9,8 +9,8 @@ pub fn run(part: u8) {
 // PART 1
 fn get_calibration_number_p1(line: &str) -> u32 {
     let nums: Vec<_> = line.chars().filter_map(|c| c.to_digit(10)).collect();
-    let first = *nums.as_slice().first().unwrap();
-    let last = *nums.as_slice().last().unwrap();
+    let first = nums.as_slice().first().unwrap();
+    let last = nums.as_slice().last().unwrap();
     (10 * first) + last
 }
 
