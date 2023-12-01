@@ -1,0 +1,11 @@
+[package]
+name = "aoc-rust-2022"
+version = "0.1.0"
+edition = "2021"
+description = "Solutions to Advent of Code 2022 in Rust"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.4.10", features = ["derive"] }
+lazy_static = "1.4.0"

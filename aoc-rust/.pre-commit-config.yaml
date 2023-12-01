@@ -1,0 +1,25 @@
+repos:
+  - repo: local
+    hooks:
+      - id: rustfmt
+        name: rustfmt
+        description: Check if all files follow the rustfmt style
+        entry: cargo fmt --all --check --manifest-path aoc-rust/Cargo.toml
+        language: system
+        types: [rust]
+        pass_filenames: false
+      - id: clippy
+        name: clippy
+        description: Rust linter
+        entry: cargo clippy --manifest-path aoc-rust/Cargo.toml
+        args: ["--", "-D", "warnings"]
+        language: system
+        types: [rust]
+        pass_filenames: false
+      - id: tests
+        name: tests
+        description: Check that all tests pass
+        entry: cargo test --manifest-path aoc-rust/Cargo.toml
+        language: system
+        types: [rust]
+        pass_filenames: false
