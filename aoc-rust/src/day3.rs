@@ -137,26 +137,29 @@ fn part2() {
     let mut total = 0u32;
     for vertex in graph.vertices.iter() {
         if matches!(vertex.data, NodeData::Symbol('*')) {
-            // search around gear symbol '*' for neighbours that are numbers
-            let mut numeric_neighbour_vertices = HashSet::new();
+            // search around gear symbol '*' for neighbours
+            let mut neighbour_vertices = HashSet::new();
             let (row, col) = (vertex.positions.0, vertex.positions.1.start);
             for r in row - 1..=row + 1 {
                 for c in col - 1..=col + 1 {
                     if let Some(&node) = graph.vertex_lookup.get(&(r, c)) {
-                        let node_data = graph.vertices[node].data;
-                        if let NodeData::Number(num) = node_data {
-                            numeric_neighbour_vertices.insert((node, num));
-                        }
+                        neighbour_vertices.insert(node);
                     }
                 }
             }
 
-            if numeric_neighbour_vertices.len() == 2 {
+            // pick out numbers around gear '*' symbol
+            let nums: Vec<_> = neighbour_vertices
+                .into_iter()
+                .filter_map(|node| match graph.vertices[node].data {
+                    NodeData::Number(num) => Some(num),
+                    _ => None,
+                })
+                .collect();
+
+            if nums.len() == 2 {
                 // exactly 2 numeric neighbours, so it's a gear
-                total += numeric_neighbour_vertices
-                    .into_iter()
-                    .map(|(_, num)| num)
-                    .product::<u32>();
+                total += nums[0] * nums[1];
             }
         }
     }
