@@ -3,6 +3,7 @@
 
 mod day1;
 mod day2;
+mod day3;
 
 use clap::Parser;
 
@@ -22,6 +23,7 @@ fn main() {
     match cli.day {
         1 => day1::run(cli.part),
         2 => day2::run(cli.part),
+        3 => day3::run(cli.part),
         _ => println!("Day {} not implemented", cli.day),
     }
 }
