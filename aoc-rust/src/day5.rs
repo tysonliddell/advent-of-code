@@ -89,7 +89,7 @@ fn parse_map(s: &str) -> Map {
     }
 }
 
-fn parse_maps_p2(seeds_are_ranges: bool) -> (SeedRanges, Vec<Map>) {
+fn parse_maps(seeds_are_ranges: bool) -> (SeedRanges, Vec<Map>) {
     let mut maps = vec![];
     let input = include_str!("../../puzzle_input/d5").trim();
 
@@ -149,7 +149,7 @@ fn seed_range_to_location_ranges(
 }
 
 fn part1() {
-    let (seed_ranges, maps) = parse_maps_p2(false);
+    let (seed_ranges, maps) = parse_maps(false);
     let locations = seed_ranges
         .into_iter()
         .flat_map(|r| seed_range_to_location_ranges(r.clone(), &maps))
@@ -159,7 +159,7 @@ fn part1() {
 }
 
 fn part2() {
-    let (seed_ranges, maps) = parse_maps_p2(true);
+    let (seed_ranges, maps) = parse_maps(true);
     let mut locations: Vec<_> = seed_ranges
         .into_iter()
         .flat_map(|r| seed_range_to_location_ranges(r.clone(), &maps))
