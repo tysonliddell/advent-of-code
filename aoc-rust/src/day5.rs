@@ -23,6 +23,7 @@ struct Map {
 }
 
 impl Map {
+    // map an input range to a list of output ranges.
     fn get_range(&self, in_range: RangeInclusive<u64>) -> Vec<RangeInclusive<u64>> {
         let mut result = vec![];
         for range in &self.ranges {
@@ -80,7 +81,6 @@ fn parse_map(s: &str) -> Map {
         out_range: current..=u64::MAX,
     });
     ranges.extend(extra_ranges);
-    ranges.sort_by_key(|r| *r.in_range.start());
 
     Map {
         // source: from.to_string(),
