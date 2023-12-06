@@ -35,50 +35,36 @@ impl Game {
 
 fn parse_game(line: &str) -> Game {
     let mut game = Game {
-        id: 0,
+        id: line
+            .split(':')
+            .next()
+            .and_then(|s| s.split(' ').last())
+            .and_then(|s| s.parse().ok())
+            .unwrap(),
         rounds: Vec::new(),
     };
 
-    game.id = line
-        .split(':')
-        .next()
-        .unwrap()
-        .split(' ')
-        .last()
-        .unwrap()
-        .parse()
-        .unwrap();
+    for round in line.split(':').last().unwrap().split(';') {
+        let mut cubes = Cubes {
+            blue: 0,
+            red: 0,
+            green: 0,
+        };
 
-    game.rounds = line
-        .split(':')
-        .last()
-        .unwrap()
-        .split(';')
-        .map(|r| {
-            let mut round = Cubes {
-                blue: 0,
-                red: 0,
-                green: 0,
-            };
-            let pairs = r.trim().split(',').map(|pair| {
-                let mut iter = pair.trim().split(' ');
-                let num = iter.next().unwrap().parse().unwrap();
-                let colour: &str = iter.next().unwrap();
-                (num, colour)
-            });
+        for cube in round.trim().split(',') {
+            let (num, colour) = cube.trim().split_once(' ').unwrap();
+            let num = num.parse().unwrap();
 
-            for (num, colour) in pairs {
-                match colour {
-                    "red" => round.red = num,
-                    "green" => round.green = num,
-                    "blue" => round.blue = num,
-                    _ => panic!("unknown colour"),
-                }
+            match colour {
+                "red" => cubes.red = num,
+                "green" => cubes.green = num,
+                "blue" => cubes.blue = num,
+                _ => panic!("unknown colour"),
             }
+        }
+        game.rounds.push(cubes);
+    }
 
-            round
-        })
-        .collect();
     game
 }
 
