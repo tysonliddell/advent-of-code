@@ -1,5 +1,5 @@
-// #[macro_use]
-// extern crate lazy_static;
+#[macro_use]
+extern crate lazy_static;
 
 mod day1;
 mod day2;
@@ -7,6 +7,7 @@ mod day3;
 mod day4;
 mod day5;
 mod day6;
+mod day7;
 
 use clap::Parser;
 
@@ -30,6 +31,7 @@ fn main() {
         4 => day4::run(cli.part),
         5 => day5::run(cli.part),
         6 => day6::run(cli.part),
+        7 => day7::run(cli.part),
         _ => println!("Day {} not implemented", cli.day),
     }
 }
