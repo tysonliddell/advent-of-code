@@ -14,6 +14,7 @@ type Bid = u32;
 lazy_static! {
     static ref CARDRANK: HashMap<char, u32> = {
         let mut m = HashMap::new();
+        m.insert('?', 0);   // denotes joker
         m.insert('2', 1);
         m.insert('3', 2);
         m.insert('4', 3);
@@ -37,6 +38,30 @@ struct Hand {
 }
 
 impl Hand {
+    fn replace_jokers(&self) -> Hand {
+        let num_jokers = self.cards.chars().filter(|&c| c == '?').count();
+
+        if num_jokers == 0 {
+            Hand {
+                cards: self.cards.clone(),
+            }
+        } else if num_jokers == 5 {
+            Hand {
+                cards: "AAAAA".to_string(),
+            }
+        } else {
+            let counts = self.get_card_counts();
+            let mut nonjoker_counts: Vec<_> =
+                counts.iter().filter(|(&card, _)| card != '?').collect();
+            nonjoker_counts.sort_by_key(|(_, &count)| -(count as i32));
+
+            let (&most_common_nonjoker, _) = nonjoker_counts[0];
+            Hand {
+                cards: self.cards.replace('?', &most_common_nonjoker.to_string()),
+            }
+        }
+    }
+
     fn get_card_counts(&self) -> HashMap<char, usize> {
         let mut counts = HashMap::new();
         for card in self.cards.chars() {
@@ -74,18 +99,20 @@ impl Hand {
         counts.values().filter(|&&v| v == 2).count() == 2
     }
 
-    fn rank(&self) -> u32 {
-        if self.has_five_of_kind() {
+    pub fn rank(&self) -> u32 {
+        let best_hand = self.replace_jokers();
+
+        if best_hand.has_five_of_kind() {
             7
-        } else if self.has_four_of_a_kind() {
+        } else if best_hand.has_four_of_a_kind() {
             6
-        } else if self.is_full_house() {
+        } else if best_hand.is_full_house() {
             5
-        } else if self.has_three_of_a_kind() {
+        } else if best_hand.has_three_of_a_kind() {
             4
-        } else if self.has_two_pair() {
+        } else if best_hand.has_two_pair() {
             3
-        } else if self.has_pair() {
+        } else if best_hand.has_pair() {
             2
         } else {
             1
@@ -142,113 +169,11 @@ fn part1() {
     println!("{}", score);
 }
 
-// PART 2
-fn parse_hands_with_jokers() -> Vec<(HandWithJokers, Bid)> {
-    let input = include_str!("../../puzzle_input/d7").trim();
-    let hands = input.lines().map(|l| l.split_once(' ').unwrap());
-    hands
-        .map(|(h, b)| {
-            (
-                HandWithJokers {
-                    cards: h.to_string(),
-                },
-                b.parse::<u32>().unwrap(),
-            )
-        })
-        .collect()
-}
-
-lazy_static! {
-    static ref CARDRANK_WITH_JOKERS: HashMap<char, u32> = {
-        let mut m = HashMap::new();
-        m.insert('J', 0);
-        m.insert('2', 1);
-        m.insert('3', 2);
-        m.insert('4', 3);
-        m.insert('5', 4);
-        m.insert('6', 5);
-        m.insert('7', 6);
-        m.insert('8', 7);
-        m.insert('9', 8);
-        m.insert('T', 9);
-        m.insert('Q', 11);
-        m.insert('K', 12);
-        m.insert('A', 13);
-        m
-    };
-}
-
-#[derive(Clone, Eq, PartialEq)]
-struct HandWithJokers {
-    cards: String,
-}
-
-impl HandWithJokers {
-    fn replace_jokers(&self) -> Hand {
-        let num_jokers = self.cards.chars().filter(|&c| c == 'J').count();
-
-        if num_jokers == 0 {
-            Hand {
-                cards: self.cards.clone(),
-            }
-        } else if num_jokers == 5 {
-            Hand {
-                cards: "AAAAA".to_string(),
-            }
-        } else {
-            let counts = self.get_card_counts();
-            let mut nonjoker_counts: Vec<_> =
-                counts.iter().filter(|(&card, _)| card != 'J').collect();
-            nonjoker_counts.sort_by_key(|(_, &count)| -(count as i32));
-
-            let (&most_common_nonjoker, _) = nonjoker_counts[0];
-            Hand {
-                cards: self.cards.replace('J', &most_common_nonjoker.to_string()),
-            }
-        }
-    }
-
-    fn get_card_counts(&self) -> HashMap<char, usize> {
-        let mut counts = HashMap::new();
-        for card in self.cards.chars() {
-            *counts.entry(card).or_insert(0) += 1;
-        }
-        counts
-    }
-
-    fn rank(&self) -> u32 {
-        let best_hand = self.replace_jokers();
-        best_hand.rank()
-    }
-}
-
-impl Ord for HandWithJokers {
-    fn cmp(&self, other: &Self) -> Ordering {
-        let (r1, r2) = (self.rank(), other.rank());
-        if r1 != r2 {
-            return r1.cmp(&r2);
-        }
-
-        for (c1, c2) in self.cards.chars().zip(other.cards.chars()) {
-            if c1 != c2 {
-                return CARDRANK_WITH_JOKERS
-                    .get(&c1)
-                    .cmp(&CARDRANK_WITH_JOKERS.get(&c2));
-            }
-        }
-
-        std::cmp::Ordering::Equal
-    }
-}
-
-impl PartialOrd for HandWithJokers {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
 fn part2() {
-    let mut hands = parse_hands_with_jokers();
+    let mut hands = parse_hands();
+    for (hand, _) in hands.iter_mut() {
+        hand.cards = hand.cards.replace('J', &'?'.to_string());
+    }
     hands.sort_by_key(|(h, _)| h.clone());
 
     let mut score = 0;
