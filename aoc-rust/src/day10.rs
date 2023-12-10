@@ -20,38 +20,9 @@ struct Loop {
 }
 
 impl Loop {
-    fn find_farthest_pos_distance(&self) -> usize {
-        let (_, prev_pos) = self.neighbour_positions(self.start);
-
-        let mut curr_pos = self.next_pos(self.start, prev_pos);
-        let mut prev_pos = self.start;
-        let mut count = 1;
-
-        while curr_pos != self.start {
-            (curr_pos, prev_pos) = (self.next_pos(curr_pos, prev_pos), curr_pos);
-            count += 1;
-        }
-
-        count / 2
-    }
-
-    fn all_loop_positions(&self) -> HashSet<Position> {
-        let (_, prev_pos) = self.neighbour_positions(self.start);
-        let mut loop_positions = HashSet::new();
-        loop_positions.insert(self.start);
-
-        let mut curr_pos = self.next_pos(self.start, prev_pos);
-        let mut prev_pos = self.start;
-        while curr_pos != self.start {
-            loop_positions.insert(curr_pos);
-            (curr_pos, prev_pos) = (self.next_pos(curr_pos, prev_pos), curr_pos);
-        }
-
-        loop_positions
-    }
-
+    // Remove pipe chars that are not part of the loop
     fn cleanup_pipes(&mut self) {
-        let loop_positions = self.all_loop_positions();
+        let loop_positions = self.loop_positions();
         for row in 0..self.map_height {
             for col in 0..self.map_width {
                 if !loop_positions.contains(&(row, col)) {
@@ -61,7 +32,38 @@ impl Loop {
         }
     }
 
-    fn possible_neighbour_positions(&self, pos: Position) -> Vec<Position> {
+    fn find_farthest_pos_distance(&self) -> usize {
+        let (_, prev_pos) = self.get_pipe_in_out_positions(self.start);
+
+        let mut curr_pos = self.next_pipe_pos(self.start, prev_pos);
+        let mut prev_pos = self.start;
+        let mut count = 1;
+
+        while curr_pos != self.start {
+            (curr_pos, prev_pos) = (self.next_pipe_pos(curr_pos, prev_pos), curr_pos);
+            count += 1;
+        }
+
+        count / 2
+    }
+
+    fn loop_positions(&self) -> HashSet<Position> {
+        let (_, prev_pos) = self.get_pipe_in_out_positions(self.start);
+        let mut loop_positions = HashSet::new();
+        loop_positions.insert(self.start);
+
+        let mut curr_pos = self.next_pipe_pos(self.start, prev_pos);
+        let mut prev_pos = self.start;
+        while curr_pos != self.start {
+            loop_positions.insert(curr_pos);
+            (curr_pos, prev_pos) = (self.next_pipe_pos(curr_pos, prev_pos), curr_pos);
+        }
+
+        loop_positions
+    }
+
+    // Use this to find the tile under the 'S' tile.
+    fn get_missing_pipe_tile_from_connections(&self, pos: Position) -> Vec<Position> {
         let (r, c) = pos;
         let mut nbrs = vec![];
 
@@ -93,7 +95,7 @@ impl Loop {
         nbrs
     }
 
-    fn all_neighbour_positions(&self, pos: Position) -> Vec<Position> {
+    fn board_neighbour_positions(&self, pos: Position) -> Vec<Position> {
         let (r, c) = pos;
         let mut nbrs = vec![];
 
@@ -113,7 +115,8 @@ impl Loop {
         nbrs
     }
 
-    fn neighbour_positions(&self, pos: Position) -> (Position, Position) {
+    // Given a pipe tile position, return the two tile positions that feed into it.
+    fn get_pipe_in_out_positions(&self, pos: Position) -> (Position, Position) {
         let (r, c) = pos;
         let mut nbrs = vec![];
         let pipe = self.data[r][c];
@@ -150,8 +153,8 @@ impl Loop {
         nbrs.into_iter().collect_tuple().unwrap()
     }
 
-    fn next_pos(&self, pos: Position, prev_pos: Position) -> Position {
-        let nbrs = self.neighbour_positions(pos);
+    fn next_pipe_pos(&self, pos: Position, prev_pos: Position) -> Position {
+        let nbrs = self.get_pipe_in_out_positions(pos);
         if nbrs.0 != prev_pos {
             nbrs.0
         } else {
@@ -159,9 +162,9 @@ impl Loop {
         }
     }
 
-    fn replace_start_char(&mut self) {
+    fn replace_start_tile(&mut self) {
         let (p1, p2) = self
-            .possible_neighbour_positions(self.start)
+            .get_missing_pipe_tile_from_connections(self.start)
             .into_iter()
             .collect_tuple()
             .unwrap();
@@ -244,7 +247,7 @@ impl Loop {
         self.start = (self.start.0 * 2, self.start.1 * 2);
     }
 
-    fn get_interior_positions(&self) -> HashSet<Position> {
+    fn get_exterior_positions(&self) -> HashSet<Position> {
         let mut exterior_positions = HashSet::new();
         let mut q: VecDeque<_> = (0..self.map_height)
             .cartesian_product(0..self.map_width)
@@ -261,7 +264,7 @@ impl Loop {
             let pos = q.pop_front().unwrap();
             exterior_positions.insert(pos);
 
-            let nbrs = self.all_neighbour_positions(pos);
+            let nbrs = self.board_neighbour_positions(pos);
             for n in nbrs {
                 let c = self.data[n.0][n.1];
                 if !exterior_positions.contains(&n) && "*.".contains(c) {
@@ -298,7 +301,7 @@ fn parse_loop() -> Loop {
         map_height,
         map_width,
     };
-    l.replace_start_char();
+    l.replace_start_tile();
     l.cleanup_pipes();
     l
 }
@@ -311,7 +314,7 @@ fn part1() {
 fn part2() {
     let mut l = parse_loop();
     l.stretch_board();
-    let exterior_positions = l.get_interior_positions();
+    let exterior_positions = l.get_exterior_positions();
     let interior_position_count = (0..l.map_height)
         .cartesian_product(0..l.map_width)
         .filter(|pos| !exterior_positions.contains(pos))
