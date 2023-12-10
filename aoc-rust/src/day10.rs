@@ -249,16 +249,19 @@ impl Loop {
 
     fn get_exterior_positions(&self) -> HashSet<Position> {
         let mut exterior_positions = HashSet::new();
-        let mut q: VecDeque<_> = (0..self.map_height)
-            .cartesian_product(0..self.map_width)
-            .filter(|&(r, c)| {
-                r == 0 || r == self.map_height - 1 || c == 0 || c == self.map_width - 1
-            })
-            .filter(|&(r, c)| "*.".contains(self.data[r][c]))
-            .inspect(|&pos| {
-                exterior_positions.insert(pos);
-            })
-            .collect();
+
+        let is_border_position =
+            |(r, c)| r == 0 || r == self.map_height - 1 || c == 0 || c == self.map_width - 1;
+
+        let mut q = VecDeque::new();
+        for r in 0..self.map_height {
+            for c in 0..self.map_width {
+                if is_border_position((r, c)) && "*.".contains(self.data[r][c]) {
+                    exterior_positions.insert((r, c));
+                    q.push_back((r, c));
+                }
+            }
+        }
 
         while !q.is_empty() {
             let pos = q.pop_front().unwrap();
