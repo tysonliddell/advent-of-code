@@ -4,6 +4,7 @@ extern crate lazy_static;
 mod day1;
 mod day10;
 mod day11;
+mod day12;
 mod day2;
 mod day3;
 mod day4;
@@ -40,6 +41,7 @@ fn main() {
         9 => day9::run(cli.part),
         10 => day10::run(cli.part),
         11 => day11::run(cli.part),
+        12 => day12::run(cli.part),
         _ => println!("Day {} not implemented", cli.day),
     }
 }
