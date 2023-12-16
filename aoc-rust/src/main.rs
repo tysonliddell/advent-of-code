@@ -8,6 +8,7 @@ mod day12;
 mod day13;
 mod day14;
 mod day15;
+mod day16;
 mod day2;
 mod day3;
 mod day4;
@@ -48,6 +49,7 @@ fn main() {
         13 => day13::run(cli.part),
         14 => day14::run(cli.part),
         15 => day15::run(cli.part),
+        16 => day16::run(cli.part),
         _ => println!("Day {} not implemented", cli.day),
     }
 }
