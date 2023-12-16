@@ -1,6 +1,4 @@
-use std::{collections::HashSet, fmt::Display};
-
-use itertools::Itertools;
+use std::collections::HashSet;
 
 pub fn run(part: u8) {
     match part {
@@ -26,18 +24,6 @@ impl From<&str> for Contraption {
             energised: HashSet::new(),
             seen_beams: HashSet::new(),
         }
-    }
-}
-
-impl Display for Contraption {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut output = self.board.clone();
-        for beam in self.beams.iter() {
-            output[beam.pos.0 as usize][beam.pos.1 as usize] =
-                format!("{}", beam.dir).chars().next().unwrap();
-        }
-        let s = output.into_iter().map(|row| row.iter().join("")).join("\n");
-        write!(f, "{}", s)
     }
 }
 
@@ -135,18 +121,6 @@ impl Direction {
             Self::East => Self::North,
             Self::West => Self::South,
         }
-    }
-}
-
-impl Display for Direction {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let c = match self {
-            Self::North => '^',
-            Self::South => 'v',
-            Self::East => '>',
-            Self::West => '<',
-        };
-        write!(f, "{}", c)
     }
 }
 
