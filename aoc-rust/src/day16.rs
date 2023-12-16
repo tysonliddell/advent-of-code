@@ -12,9 +12,9 @@ pub fn run(part: u8) {
 
 struct Contraption {
     board: Vec<Vec<char>>,
-    // beams: Vec<Beam>,
     beams: Vec<Beam>,
     energised: HashSet<Position>,
+    seen_beams: HashSet<Beam>,
 }
 
 impl From<&str> for Contraption {
@@ -24,6 +24,7 @@ impl From<&str> for Contraption {
             board: data,
             beams: vec![Beam::default()],
             energised: HashSet::new(),
+            seen_beams: HashSet::new(),
         }
     }
 }
@@ -49,6 +50,12 @@ impl Contraption {
         self.board[0].len()
     }
 
+    fn reset(&mut self, start_beam: Beam) {
+        self.beams = vec![start_beam];
+        self.energised = HashSet::new();
+        self.seen_beams = HashSet::new();
+    }
+
     fn step(&mut self) {
         // energise
         for beam in self.beams.iter() {
@@ -64,7 +71,10 @@ impl Contraption {
                 let mut new_beam = *beam;
                 new_beam.dir = new_beam.dir.rotate_90_anticlockwise();
                 beam.dir = beam.dir.rotate_90_clockwise();
-                new_beams.push(new_beam);
+                if !self.seen_beams.contains(&new_beam) {
+                    new_beams.push(new_beam);
+                    self.seen_beams.insert(new_beam);
+                }
             } else if let Some(dir) = beam.get_bounce(tile) {
                 beam.dir = dir;
             }
@@ -88,20 +98,19 @@ impl Contraption {
         });
     }
 
-    // fn print_energised(&self) {
-    //     let mut output = self.board.clone();
-    //     for &(row, col) in self.energised.iter() {
-    //         output[row as usize][col as usize] = '#';
-    //     }
-    //     for row in output {
-    //         println!("{}", row.into_iter().join(""))
-    //     }
-    // }
+    fn energise(&mut self) -> usize {
+        // not sure how many iterations we need, but this gives the correct results
+        for _ in 0..(self.width() * self.height()) {
+            self.step();
+        }
+
+        self.energised.len()
+    }
 }
 
 type Position = (i32, i32);
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 enum Direction {
     North,
     South,
@@ -141,7 +150,7 @@ impl Display for Direction {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 struct Beam {
     pos: Position,
     dir: Direction,
@@ -182,26 +191,49 @@ impl Beam {
     }
 }
 
-fn get_enerergised(mut contraption: Contraption) -> HashSet<Position> {
-    for _ in 0..(contraption.width() * contraption.height() * 4) {
-        // for _ in 0..100 {
-        contraption.step();
-        println!("{}", contraption.beams.len());
-        // println!("{}", contraption);
-        // contraption.print_energised();
-        // println!();
+fn part1() {
+    let input = include_str!("../../puzzle_input/d16").trim();
+    let mut contraption: Contraption = input.into();
+    let energised = contraption.energise();
+    println!("{}", energised);
+}
+
+fn part2() {
+    let input = include_str!("../../puzzle_input/d16").trim();
+    let mut contraption: Contraption = input.into();
+
+    let mut energised_vals = vec![];
+    for row in 0..contraption.height() {
+        let start_beam = Beam {
+            pos: (row as i32, 0),
+            dir: Direction::East,
+        };
+        contraption.reset(start_beam);
+        energised_vals.push(contraption.energise());
+
+        let start_beam = Beam {
+            pos: (row as i32, contraption.width() as i32 - 1),
+            dir: Direction::West,
+        };
+        contraption.reset(start_beam);
+        energised_vals.push(contraption.energise());
     }
 
-    contraption.energised
+    for col in 0..contraption.width() {
+        let start_beam = Beam {
+            pos: (0, col as i32),
+            dir: Direction::South,
+        };
+        contraption.reset(start_beam);
+        energised_vals.push(contraption.energise());
+
+        let start_beam = Beam {
+            pos: (contraption.height() as i32 - 1, col as i32),
+            dir: Direction::North,
+        };
+        contraption.reset(start_beam);
+        energised_vals.push(contraption.energise());
+    }
+
+    println!("{}", energised_vals.iter().max().unwrap());
 }
-
-fn part1() {
-    let input = include_str!("../../puzzle_input/test").trim();
-    let contraption: Contraption = input.into();
-    // println!("{}", contraption);
-
-    let energised = get_enerergised(contraption);
-    println!("{}", energised.len());
-}
-
-fn part2() {}
