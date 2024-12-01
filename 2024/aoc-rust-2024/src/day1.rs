@@ -39,8 +39,8 @@ impl Solution for Day1 {
         let list1: Vec<_> = lines.iter().map(|line| line.0).collect();
         let list2: Vec<_> = lines.iter().map(|line| line.1).collect();
 
-        let counter1 = make_counter(list1);
-        let counter2 = make_counter(list2);
+        let counter1 = make_counter(list1.into_iter());
+        let counter2 = make_counter(list2.into_iter());
 
         let mut total = 0;
         for (id, count) in counter1 {
