@@ -1,6 +1,7 @@
 use std::{fs, path::Path};
 
 pub mod day1;
+pub mod helpers;
 
 pub fn solution(day: u8, part: u8) -> String {
     let solution = match day {
