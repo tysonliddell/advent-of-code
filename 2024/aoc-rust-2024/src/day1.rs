@@ -1,11 +1,11 @@
 use std::iter::zip;
 
-use crate::{get_puzzle_input, helpers::make_counter, Solution};
+use crate::{helpers::make_counter, io, Solution};
 
 pub struct Day1;
 
 fn parse_input() -> Vec<(u32, u32)> {
-    let input = get_puzzle_input(1);
+    let input = io::get_puzzle_input(1);
     let input = input.trim();
 
     input
@@ -18,7 +18,7 @@ fn parse_input() -> Vec<(u32, u32)> {
 }
 
 impl Solution for Day1 {
-    fn part1(&self) -> String {
+    fn part1_solution(&self) -> String {
         let lines = parse_input();
 
         let mut list1: Vec<_> = lines.iter().map(|line| line.0).collect();
@@ -33,7 +33,7 @@ impl Solution for Day1 {
         result.to_string()
     }
 
-    fn part2(&self) -> String {
+    fn part2_solution(&self) -> String {
         let lines = parse_input();
 
         let list1: Vec<_> = lines.iter().map(|line| line.0).collect();
