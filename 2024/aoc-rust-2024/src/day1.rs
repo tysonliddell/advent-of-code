@@ -42,10 +42,10 @@ impl Solution for Day1 {
         let counter1 = make_counter(list1.into_iter());
         let counter2 = make_counter(list2.into_iter());
 
-        let mut total = 0;
-        for (id, count) in counter1 {
-            total += id as usize * counter2.get(&id).unwrap_or(&0) * count;
-        }
+        let total: usize = counter1
+            .into_iter()
+            .map(|(id, count)| id as usize * counter2.get(&id).unwrap_or(&0) * count)
+            .sum();
 
         total.to_string()
     }
