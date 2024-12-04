@@ -1,6 +1,7 @@
 mod day1;
 mod day2;
 mod day3;
+mod day4;
 mod helpers;
 mod io;
 
@@ -9,6 +10,7 @@ pub fn solution(day: u8, part: u8) -> String {
         1 => Box::new(day1::Day1),
         2 => Box::new(day2::Day2),
         3 => Box::new(day3::Day3),
+        4 => Box::new(day4::Day4),
         _ => unimplemented!("Day {} is not implemented!", day),
     };
 

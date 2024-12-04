@@ -13,5 +13,5 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
     let solution = aoc_rust_2024::solution(cli.day, cli.part);
-    println!("Day {}, part {} solution: {}", cli.day, cli.part, solution);
+    println!("{}", solution);
 }
