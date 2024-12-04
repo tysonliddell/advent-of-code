@@ -20,7 +20,7 @@ fn iter_cols<'a>(data: &'a Vec<&str>) -> impl Iterator<Item = String> + 'a {
     })
 }
 
-fn iter_diags<'a>(data: &'a Vec<&str>) -> impl Iterator<Item = String> + 'a {
+fn iter_diags(data: &Vec<&str>) -> impl Iterator<Item = String> {
     let height = data.len();
     let width = data[0].len();
 
