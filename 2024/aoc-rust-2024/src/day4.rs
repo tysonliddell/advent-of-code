@@ -1,37 +1,31 @@
+use core::str;
 use std::collections::HashMap;
 
 use crate::{io, Solution};
 
 pub struct Day4;
 
-// Return an iterator of char iterators. Each char iterator is a row.
-fn iter_rows<'a>(
-    data: &'a Vec<&str>,
-) -> impl Iterator<Item = impl DoubleEndedIterator<Item = char> + 'a> {
-    data.iter().map(|s| s.chars())
+fn iter_rows<'a>(data: &'a Vec<&str>) -> impl Iterator<Item = String> + 'a {
+    data.iter().map(|s| s.to_string())
 }
 
-// Return an iterator of char iterators. Each char iterator is a column.
-fn iter_cols<'a>(
-    data: &'a Vec<&str>,
-) -> impl Iterator<Item = impl DoubleEndedIterator<Item = char> + 'a> {
+fn iter_cols<'a>(data: &'a Vec<&str>) -> impl Iterator<Item = String> + 'a {
     let height = data.len();
     let width = data[0].len();
 
     (0..width).map(move |col| {
-        (0..height).map(move |row| char::from_u32(data[row].as_bytes()[col] as u32).unwrap())
+        (0..height)
+            .map(move |row| char::from_u32(data[row].as_bytes()[col] as u32).unwrap())
+            .collect()
     })
 }
 
-// Return an iterator of char iterators. Each char iterator is a diganonal.
-fn iter_diags<'a>(
-    data: &'a Vec<&str>,
-) -> impl Iterator<Item = impl DoubleEndedIterator<Item = char> + 'a> + 'a {
+fn iter_diags<'a>(data: &'a Vec<&str>) -> impl Iterator<Item = String> + 'a {
     let height = data.len();
     let width = data[0].len();
 
-    let mut diags_nw_to_se: HashMap<i32, Vec<char>> = HashMap::new();
-    let mut diags_ne_to_sw: HashMap<i32, Vec<char>> = HashMap::new();
+    let mut diags_nw_to_se: HashMap<i32, String> = HashMap::new();
+    let mut diags_ne_to_sw: HashMap<i32, String> = HashMap::new();
 
     for row in 0..height as i32 {
         for col in 0..width as i32 {
@@ -50,13 +44,11 @@ fn iter_diags<'a>(
     let diags_nw_to_se = diags_nw_to_se.into_values();
     let diags_ne_to_sw = diags_ne_to_sw.into_values();
 
-    diags_nw_to_se
-        .chain(diags_ne_to_sw)
-        .map(|diag| diag.into_iter())
+    diags_nw_to_se.chain(diags_ne_to_sw)
 }
 
-fn get_xmas_count(chars: impl Iterator<Item = char>) -> usize {
-    chars.collect::<String>().match_indices("XMAS").count()
+fn get_xmas_count(s: &str) -> usize {
+    s.match_indices("XMAS").count()
 }
 
 impl Solution for Day4 {
@@ -64,32 +56,17 @@ impl Solution for Day4 {
         let input = io::get_puzzle_input(4);
         let data: Vec<_> = input.lines().collect();
 
-        let count_rows: usize = iter_rows(&data).map(get_xmas_count).sum();
-        let count_rows_reverse: usize = iter_rows(&data)
-            .map(|chars| chars.rev())
-            .map(get_xmas_count)
-            .sum();
+        let rows_cols_and_diags = iter_rows(&data)
+            .chain(iter_cols(&data))
+            .chain(iter_diags(&data));
 
-        let count_cols: usize = iter_cols(&data).map(get_xmas_count).sum();
-        let count_cols_reverse: usize = iter_cols(&data)
-            .map(|chars| chars.rev())
-            .map(get_xmas_count)
-            .sum();
+        let mut total = 0;
+        for slice in rows_cols_and_diags {
+            let slice_rev: String = slice.chars().rev().collect();
+            total += get_xmas_count(&slice) + get_xmas_count(&slice_rev);
+        }
 
-        let count_diags: usize = iter_diags(&data).map(get_xmas_count).sum();
-        let count_diags_reverse: usize = iter_diags(&data)
-            .map(|chars| chars.rev())
-            .map(get_xmas_count)
-            .sum();
-
-        let result = count_rows
-            + count_rows_reverse
-            + count_cols
-            + count_cols_reverse
-            + count_diags
-            + count_diags_reverse;
-
-        result.to_string()
+        total.to_string()
     }
 
     fn part2_solution(&self) -> String {
