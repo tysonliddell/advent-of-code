@@ -4,50 +4,61 @@ use crate::{io, Solution};
 
 pub struct Day4;
 
-fn iter_rows<'a>(data: &'a Vec<&str>) -> impl Iterator<Item = &'a str> {
-    data.iter().map(|s| *s)
+// Return an iterator of char iterators. Each char iterator is a row.
+fn iter_rows<'a>(
+    data: &'a Vec<&str>,
+) -> impl Iterator<Item = impl DoubleEndedIterator<Item = char> + 'a> {
+    data.iter().map(|s| s.chars())
 }
 
-fn iter_cols<'a>(data: &'a Vec<&str>) -> impl Iterator<Item = String> + 'a {
+// Return an iterator of char iterators. Each char iterator is a column.
+fn iter_cols<'a>(
+    data: &'a Vec<&str>,
+) -> impl Iterator<Item = impl DoubleEndedIterator<Item = char> + 'a> {
     let height = data.len();
     let width = data[0].len();
-    let mut cols = vec![vec![0u8; height]; width];
 
-    for i in 0..height {
-        for j in 0..width {
-            cols[j][i] = data[i].as_bytes()[j];
+    (0..width).map(move |col| {
+        (0..height).map(move |row| char::from_u32(data[row].as_bytes()[col] as u32).unwrap())
+    })
+}
+
+// Return an iterator of char iterators. Each char iterator is a diganonal.
+fn iter_diags<'a>(
+    data: &'a Vec<&str>,
+) -> impl Iterator<Item = impl DoubleEndedIterator<Item = char> + 'a> + 'a {
+    let height = data.len();
+    let width = data[0].len();
+
+    type Position = (usize, usize);
+    let mut diags_nw_to_se: HashMap<i32, Vec<Position>> = HashMap::new();
+    let mut diags_ne_to_sw: HashMap<i32, Vec<Position>> = HashMap::new();
+
+    // Use `Vec`s to store all positions for the same diagonal, in order.
+    for row in 0..height as i32 {
+        for col in 0..width as i32 {
+            diags_nw_to_se
+                .entry(row - col) // row-col is constant on each NW->SE diagonal
+                .or_default()
+                .push((row as usize, col as usize));
+            diags_ne_to_sw
+                .entry(row + col) // row+col is constant on each NE->SW diagonal
+                .or_default()
+                .push((row as usize, col as usize));
         }
     }
 
-    cols.into_iter().map(|col| String::from_utf8(col).unwrap())
+    let diags_nw_to_se = diags_nw_to_se.into_values();
+    let diags_ne_to_sw = diags_ne_to_sw.into_values();
+
+    diags_nw_to_se.chain(diags_ne_to_sw).map(|diag| {
+        diag.into_iter()
+            .map(|(row, col)| data[row].as_bytes()[col].into())
+    })
 }
 
-fn iter_diags<'a>(data: &'a Vec<&str>) -> impl Iterator<Item = String> + 'a {
-    let height = data.len();
-    let width = data[0].len();
-    let mut diags_left_to_right: HashMap<i32, String> = HashMap::new();
-    let mut diags_right_to_left: HashMap<i32, String> = HashMap::new();
-
-    for i in 0..height as i32 {
-        for j in 0..width as i32 {
-            diags_left_to_right
-                .entry(i - j)
-                .or_default()
-                .push(data[i as usize].as_bytes()[j as usize].into());
-            diags_right_to_left
-                .entry(i + j)
-                .or_default()
-                .push(data[i as usize].as_bytes()[j as usize].into());
-        }
-    }
-
-    diags_left_to_right
-        .into_values()
-        .chain(diags_right_to_left.into_values())
-}
-
-fn get_xmas_count<'a>(chars: &'a str) -> usize {
-    chars.match_indices("XMAS").count()
+fn get_xmas_count(chars: impl Iterator<Item = char>) -> usize {
+    chars.collect::<String>().match_indices("XMAS").count()
 }
 
 impl Solution for Day4 {
@@ -57,26 +68,20 @@ impl Solution for Day4 {
 
         let count_rows: usize = iter_rows(&data).map(get_xmas_count).sum();
         let count_rows_reverse: usize = iter_rows(&data)
-            .map(|s| {
-                let rev: String = s.chars().rev().collect();
-                get_xmas_count(&rev[..])
-            })
+            .map(|chars| chars.rev())
+            .map(get_xmas_count)
             .sum();
 
-        let count_cols: usize = iter_cols(&data).map(|s| get_xmas_count(&s[..])).sum();
+        let count_cols: usize = iter_cols(&data).map(get_xmas_count).sum();
         let count_cols_reverse: usize = iter_cols(&data)
-            .map(|s| {
-                let rev: String = s.chars().rev().collect();
-                get_xmas_count(&rev[..])
-            })
+            .map(|chars| chars.rev())
+            .map(get_xmas_count)
             .sum();
 
-        let count_diags: usize = iter_diags(&data).map(|s| get_xmas_count(&s[..])).sum();
+        let count_diags: usize = iter_diags(&data).map(get_xmas_count).sum();
         let count_diags_reverse: usize = iter_diags(&data)
-            .map(|s| {
-                let rev: String = s.chars().rev().collect();
-                get_xmas_count(&rev[..])
-            })
+            .map(|chars| chars.rev())
+            .map(get_xmas_count)
             .sum();
 
         let result = count_rows
