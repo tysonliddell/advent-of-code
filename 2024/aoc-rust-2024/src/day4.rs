@@ -5,6 +5,10 @@ use crate::{io, Solution};
 
 pub struct Day4;
 
+fn get_nth_char(s: &str, n: usize) -> Option<char> {
+    char::from_u32(s.as_bytes()[n] as u32)
+}
+
 fn iter_rows<'a>(data: &'a Vec<&str>) -> impl Iterator<Item = String> + 'a {
     data.iter().map(|s| s.to_string())
 }
@@ -15,7 +19,7 @@ fn iter_cols<'a>(data: &'a Vec<&str>) -> impl Iterator<Item = String> + 'a {
 
     (0..width).map(move |col| {
         (0..height)
-            .map(move |row| char::from_u32(data[row].as_bytes()[col] as u32).unwrap())
+            .map(|row| get_nth_char(data[row], col).unwrap())
             .collect()
     })
 }
@@ -29,7 +33,7 @@ fn iter_diags(data: &Vec<&str>) -> impl Iterator<Item = String> {
 
     for row in 0..height as i32 {
         for col in 0..width as i32 {
-            let c: char = data[row as usize].as_bytes()[col as usize].into();
+            let c = get_nth_char(data[row as usize], col as usize).unwrap();
             diags_nw_to_se
                 .entry(row - col) // row-col is constant on each NW->SE diagonal
                 .or_default()
