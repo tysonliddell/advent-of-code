@@ -30,31 +30,29 @@ fn iter_diags<'a>(
     let height = data.len();
     let width = data[0].len();
 
-    type Position = (usize, usize);
-    let mut diags_nw_to_se: HashMap<i32, Vec<Position>> = HashMap::new();
-    let mut diags_ne_to_sw: HashMap<i32, Vec<Position>> = HashMap::new();
+    let mut diags_nw_to_se: HashMap<i32, Vec<char>> = HashMap::new();
+    let mut diags_ne_to_sw: HashMap<i32, Vec<char>> = HashMap::new();
 
-    // Use `Vec`s to store all positions for the same diagonal, in order.
     for row in 0..height as i32 {
         for col in 0..width as i32 {
+            let c: char = data[row as usize].as_bytes()[col as usize].into();
             diags_nw_to_se
                 .entry(row - col) // row-col is constant on each NW->SE diagonal
                 .or_default()
-                .push((row as usize, col as usize));
+                .push(c);
             diags_ne_to_sw
                 .entry(row + col) // row+col is constant on each NE->SW diagonal
                 .or_default()
-                .push((row as usize, col as usize));
+                .push(c);
         }
     }
 
     let diags_nw_to_se = diags_nw_to_se.into_values();
     let diags_ne_to_sw = diags_ne_to_sw.into_values();
 
-    diags_nw_to_se.chain(diags_ne_to_sw).map(|diag| {
-        diag.into_iter()
-            .map(|(row, col)| data[row].as_bytes()[col].into())
-    })
+    diags_nw_to_se
+        .chain(diags_ne_to_sw)
+        .map(|diag| diag.into_iter())
 }
 
 fn get_xmas_count(chars: impl Iterator<Item = char>) -> usize {
