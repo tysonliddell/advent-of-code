@@ -1,10 +1,6 @@
+use aoc_rust_2024::io;
 use std::collections::HashSet;
-
-use crate::{io, Solution};
-
 use Direction::*;
-
-pub struct Day6;
 
 type Position = (usize, usize);
 
@@ -108,50 +104,52 @@ impl Map {
     }
 }
 
-impl Solution for Day6 {
-    fn part1_solution(&self) -> String {
-        let input = io::get_puzzle_input(6);
-        let mut map = Map::new(&input);
-        let mut visited = HashSet::new();
+fn part1_solution() -> u32 {
+    let input = io::get_puzzle_input(6);
+    let mut map = Map::new(&input);
+    let mut visited = HashSet::new();
 
-        visited.insert(map.curr_position.unwrap());
-        while let Some(pos) = map.take_step() {
-            visited.insert(pos);
-        }
-
-        visited.len().to_string()
+    visited.insert(map.curr_position.unwrap());
+    while let Some(pos) = map.take_step() {
+        visited.insert(pos);
     }
 
-    fn part2_solution(&self) -> String {
-        let input = io::get_puzzle_input(6);
-        let mut map = Map::new(&input);
-        let mut visited = HashSet::new();
+    visited.len() as u32
+}
 
+fn part2_solution() -> u32 {
+    let input = io::get_puzzle_input(6);
+    let mut map = Map::new(&input);
+    let mut visited = HashSet::new();
+
+    while let Some(pos) = map.take_step() {
+        visited.insert(pos);
+    }
+    map.reset();
+
+    let obstruction_causes_cycle = |obstruction_pos: &Position| -> bool {
+        let &(row, col) = obstruction_pos;
+        map.data[row][col] = '#';
+
+        let mut visited_with_obstruction = HashSet::new();
+        let mut cycle_detected = false;
         while let Some(pos) = map.take_step() {
-            visited.insert(pos);
-        }
-        map.reset();
-
-        let obstruction_causes_cycle = |obstruction_pos: &Position| -> bool {
-            let &(row, col) = obstruction_pos;
-            map.data[row][col] = '#';
-
-            let mut visited_with_obstruction = HashSet::new();
-            let mut cycle_detected = false;
-            while let Some(pos) = map.take_step() {
-                if visited_with_obstruction.contains(&(pos, map.curr_direction)) {
-                    cycle_detected = true;
-                    break;
-                }
-                visited_with_obstruction.insert((pos, map.curr_direction));
+            if visited_with_obstruction.contains(&(pos, map.curr_direction)) {
+                cycle_detected = true;
+                break;
             }
+            visited_with_obstruction.insert((pos, map.curr_direction));
+        }
 
-            map.data[row][col] = '.';
-            map.reset();
-            cycle_detected
-        };
+        map.data[row][col] = '.';
+        map.reset();
+        cycle_detected
+    };
 
-        let cycle_count = visited.into_iter().filter(obstruction_causes_cycle).count();
-        cycle_count.to_string()
-    }
+    visited.into_iter().filter(obstruction_causes_cycle).count() as u32
+}
+
+fn main() {
+    println!("{}", part1_solution());
+    println!("{}", part2_solution());
 }

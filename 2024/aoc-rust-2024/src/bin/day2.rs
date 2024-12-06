@@ -1,6 +1,4 @@
-use crate::{io, Solution};
-
-pub struct Day2;
+use aoc_rust_2024::io;
 
 type Report = Vec<u32>;
 
@@ -37,18 +35,19 @@ fn is_safe_with_dampner(report: &Report) -> bool {
     })
 }
 
-impl Solution for Day2 {
-    fn part1_solution(&self) -> String {
-        let reports = parse_input();
+fn part1_solution() -> u32 {
+    let reports = parse_input();
 
-        let result = reports.into_iter().filter(is_safe).count();
-        result.to_string()
-    }
+    reports.into_iter().filter(is_safe).count() as u32
+}
 
-    fn part2_solution(&self) -> String {
-        let reports = parse_input();
+fn part2_solution() -> u32 {
+    let reports = parse_input();
 
-        let result = reports.into_iter().filter(is_safe_with_dampner).count();
-        result.to_string()
-    }
+    reports.into_iter().filter(is_safe_with_dampner).count() as u32
+}
+
+fn main() {
+    println!("{}", part1_solution());
+    println!("{}", part2_solution());
 }

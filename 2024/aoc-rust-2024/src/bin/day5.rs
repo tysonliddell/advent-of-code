@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::{io, Solution};
+use aoc_rust_2024::io;
 
 type PageOrder = (u8, u8);
 type Update = Vec<u8>;
@@ -88,35 +88,32 @@ fn fix_update_ordering(update: Update, successors: &HashMap<u8, HashSet<u8>>) ->
     in_order
 }
 
-pub struct Day5;
+fn part1_solution() -> u32 {
+    let (orderings, updates) = parsed_input();
 
-impl Solution for Day5 {
-    fn part1_solution(&self) -> String {
-        let (orderings, updates) = parsed_input();
+    let successors = get_successors(orderings);
 
-        let successors = get_successors(orderings);
+    updates
+        .into_iter()
+        .filter(|update| is_update_in_order(update, &successors))
+        .map(|update| update[update.len() / 2] as u32)
+        .sum()
+}
 
-        let result: u32 = updates
-            .into_iter()
-            .filter(|update| is_update_in_order(update, &successors))
-            .map(|update| update[update.len() / 2] as u32)
-            .sum();
+fn part2_solution() -> u32 {
+    let (orderings, updates) = parsed_input();
 
-        result.to_string()
-    }
+    let successors = get_successors(orderings);
 
-    fn part2_solution(&self) -> String {
-        let (orderings, updates) = parsed_input();
+    updates
+        .into_iter()
+        .filter(|update| !is_update_in_order(update, &successors))
+        .map(|update| fix_update_ordering(update, &successors))
+        .map(|update| update[update.len() / 2] as u32)
+        .sum()
+}
 
-        let successors = get_successors(orderings);
-
-        let result: u32 = updates
-            .into_iter()
-            .filter(|update| !is_update_in_order(update, &successors))
-            .map(|update| fix_update_ordering(update, &successors))
-            .map(|update| update[update.len() / 2] as u32)
-            .sum();
-
-        result.to_string()
-    }
+fn main() {
+    println!("{}", part1_solution());
+    println!("{}", part2_solution());
 }
