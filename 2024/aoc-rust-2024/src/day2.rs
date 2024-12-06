@@ -2,6 +2,8 @@ use crate::{io, Solution};
 
 pub struct Day2;
 
+type Report = Vec<u32>;
+
 fn parse_input() -> Vec<Vec<u32>> {
     let input = io::get_puzzle_input(2);
     let input = input.trim();
@@ -12,7 +14,7 @@ fn parse_input() -> Vec<Vec<u32>> {
         .collect()
 }
 
-fn is_safe(report: &Vec<u32>) -> bool {
+fn is_safe(report: &Report) -> bool {
     let sign = (report[1] as i32 - report[0] as i32).signum();
 
     report
@@ -24,8 +26,8 @@ fn is_safe(report: &Vec<u32>) -> bool {
         })
 }
 
-fn is_safe_with_dampner(report: &Vec<u32>) -> bool {
-    (0..report.len()).into_iter().any(|index_to_skip| {
+fn is_safe_with_dampner(report: &Report) -> bool {
+    (0..report.len()).any(|index_to_skip| {
         let skipped: Vec<_> = report
             .iter()
             .enumerate()

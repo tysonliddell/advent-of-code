@@ -10,10 +10,10 @@ type Position = (usize, usize);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 enum Direction {
-    NORTH,
-    SOUTH,
-    EAST,
-    WEST,
+    North,
+    South,
+    East,
+    West,
 }
 
 #[derive(Debug)]
@@ -30,10 +30,10 @@ struct Map {
 impl Direction {
     fn turn_90_right(&self) -> Self {
         match self {
-            NORTH => EAST,
-            EAST => SOUTH,
-            SOUTH => WEST,
-            WEST => NORTH,
+            North => East,
+            East => South,
+            South => West,
+            West => North,
         }
     }
 }
@@ -56,9 +56,9 @@ impl Map {
         Self {
             data,
             start_position: start_pos,
-            start_direction: NORTH,
+            start_direction: North,
             curr_position: Some(start_pos),
-            curr_direction: NORTH,
+            curr_direction: North,
             height,
             width,
         }
@@ -72,14 +72,14 @@ impl Map {
     pub fn take_step(&mut self) -> Option<Position> {
         if let Some(pos) = self.curr_position {
             let next_pos_unchecked = |direction: Direction| match direction {
-                NORTH if pos.0 > 0 => Some((pos.0 - 1, pos.1)),
-                NORTH if pos.0 == 0 => None,
-                SOUTH if pos.0 < self.height - 1 => Some((pos.0 + 1, pos.1)),
-                SOUTH if pos.0 >= self.height - 1 => None,
-                WEST if pos.1 > 0 => Some((pos.0, pos.1 - 1)),
-                WEST if pos.1 == 0 => None,
-                EAST if pos.1 < self.width - 1 => Some((pos.0, pos.1 + 1)),
-                EAST if pos.1 >= self.width - 1 => None,
+                North if pos.0 > 0 => Some((pos.0 - 1, pos.1)),
+                North if pos.0 == 0 => None,
+                South if pos.0 < self.height - 1 => Some((pos.0 + 1, pos.1)),
+                South if pos.0 >= self.height - 1 => None,
+                West if pos.1 > 0 => Some((pos.0, pos.1 - 1)),
+                West if pos.1 == 0 => None,
+                East if pos.1 < self.width - 1 => Some((pos.0, pos.1 + 1)),
+                East if pos.1 >= self.width - 1 => None,
                 _ => panic!(),
             };
 

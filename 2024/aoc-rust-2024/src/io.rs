@@ -5,6 +5,6 @@ pub fn get_puzzle_input(day: u8) -> String {
 
     let filename = format!("d{}", day);
     let puzzle_input_path = Path::new(PUZZLE_DIR).join(filename);
-    let input = fs::read_to_string(puzzle_input_path).unwrap();
-    input
+
+    fs::read_to_string(puzzle_input_path).unwrap()
 }

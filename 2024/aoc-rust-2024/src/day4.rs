@@ -5,15 +5,17 @@ use crate::{io, Solution};
 
 pub struct Day4;
 
+type WordSearch<'a> = Vec<&'a str>;
+
 fn get_nth_char(s: &str, n: usize) -> Option<char> {
     char::from_u32(s.as_bytes()[n] as u32)
 }
 
-fn iter_rows<'a>(data: &'a Vec<&str>) -> impl Iterator<Item = String> + 'a {
+fn iter_rows<'a>(data: &'a WordSearch) -> impl Iterator<Item = String> + 'a {
     data.iter().map(|s| s.to_string())
 }
 
-fn iter_cols<'a>(data: &'a Vec<&str>) -> impl Iterator<Item = String> + 'a {
+fn iter_cols<'a>(data: &'a WordSearch) -> impl Iterator<Item = String> + 'a {
     let height = data.len();
     let width = data[0].len();
 
@@ -24,7 +26,7 @@ fn iter_cols<'a>(data: &'a Vec<&str>) -> impl Iterator<Item = String> + 'a {
     })
 }
 
-fn iter_diags(data: &Vec<&str>) -> impl Iterator<Item = String> {
+fn iter_diags(data: &WordSearch) -> impl Iterator<Item = String> {
     let height = data.len();
     let width = data[0].len();
 

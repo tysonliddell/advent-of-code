@@ -69,7 +69,8 @@ fn fix_update_ordering(update: Update, successors: &HashMap<u8, HashSet<u8>>) ->
 
     let mut dependency_free_pages: Vec<u8> = dependencies
         .iter()
-        .filter_map(|(page, deps)| deps.is_empty().then(|| *page))
+        .filter(|(_, deps)| deps.is_empty())
+        .map(|(&page, _)| page)
         .collect();
 
     let mut in_order = vec![];
