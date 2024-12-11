@@ -10,7 +10,7 @@ struct Position {
 
 struct Antenna {
     position: Position,
-    frequency: char,
+    _frequency: char,
 }
 
 impl Antenna {
@@ -78,7 +78,7 @@ fn parse_input() -> (HashMap<char, Vec<Antenna>>, (usize, usize)) {
                         x: col as i32,
                         y: row as i32,
                     },
-                    frequency: c,
+                    _frequency: c,
                 });
             }
         }

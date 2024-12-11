@@ -42,8 +42,7 @@ fn get_reachable_summits(map: &Map, position: Position) -> HashSet<Position> {
     let nbrs = position.get_neighbours(map);
     nbrs.into_iter()
         .filter(|pos| map[pos.row][pos.col] == current_height + 1)
-        .map(|pos| get_reachable_summits(map, pos).into_iter())
-        .flatten()
+        .flat_map(|pos| get_reachable_summits(map, pos).into_iter())
         .collect()
 }
 
