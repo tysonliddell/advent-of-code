@@ -32,6 +32,26 @@ fn parse_input() -> Vec<Game> {
 }
 
 fn get_min_tokens(game: &Game) -> Option<u64> {
+    // We want to solve the linear system:
+    //
+    //  t1*a + t2*b = y1
+    //  t1*c + t2*d = y2
+    //
+    // with positive integer solutions in y1,y2. This can be represented by the (matrix)
+    // equation:
+    //
+    //    [t1 t2] [a b] = [y1 y2]
+    //            [c d]
+    //
+    // which can be solved explicitly with
+    //
+    //     [t1 t2] = [y1 y2][a b]^-1
+    //                      [c d]
+    //             = [y1 y2]([ d -b] / det)
+    //                      ([-c  a]      )
+    //
+    // We are exploiting the fact both row vectors (buttons) in each "game" are linearly
+    // independent, resulting in a non-zero determinant and a uniqe solution.
     let (a, b, c, d) = (
         game.button_a.0 as i64,
         game.button_a.1 as i64,
@@ -44,6 +64,7 @@ fn get_min_tokens(game: &Game) -> Option<u64> {
     let (y1, y2) = (game.prize.0 as i64, game.prize.1 as i64);
 
     if (d * y1 - c * y2) % det != 0 || (-b * y1 + a * y2) % det != 0 {
+        // can't use this determinant, would result in non-integer solution for t1 or t2
         return None;
     }
 
