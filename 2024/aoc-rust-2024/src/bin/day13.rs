@@ -1,5 +1,5 @@
 use aoc_rust_2024::io;
-use itertools::Itertools;
+use regex::Regex;
 
 #[derive(Debug)]
 struct Game {
@@ -12,37 +12,19 @@ fn parse_input() -> Vec<Game> {
     let input = io::get_puzzle_input(13);
     let input = input.trim();
 
+    let number_pair_regex = Regex::new(r"(\d+)\D+(\d+)").unwrap();
+
     let mut games = Vec::new();
     for game in input.split("\n\n") {
-        let (a, b, prize): (&str, &str, &str) = game.lines().collect_tuple().unwrap();
-        let a: (u64, u64) = a
-            .split_once(':')
-            .unwrap()
-            .1
-            .split(',')
-            .map(|s| s.split_once('+').unwrap().1.parse().unwrap())
-            .collect_tuple()
-            .unwrap();
-        let b: (u64, u64) = b
-            .split_once(':')
-            .unwrap()
-            .1
-            .split(',')
-            .map(|s| s.split_once('+').unwrap().1.parse().unwrap())
-            .collect_tuple()
-            .unwrap();
-        let prize: (u64, u64) = prize
-            .split_once(':')
-            .unwrap()
-            .1
-            .split(',')
-            .map(|s| s.split_once('=').unwrap().1.parse().unwrap())
-            .collect_tuple()
-            .unwrap();
+        let number_pairs: Vec<(u64, u64)> = number_pair_regex
+            .captures_iter(game)
+            .map(|v| v.extract())
+            .map(|(_, [v1, v2])| (v1.parse().unwrap(), v2.parse().unwrap()))
+            .collect();
         games.push(Game {
-            button_a: a,
-            button_b: b,
-            prize,
+            button_a: number_pairs[0],
+            button_b: number_pairs[1],
+            prize: number_pairs[2],
         });
     }
 
