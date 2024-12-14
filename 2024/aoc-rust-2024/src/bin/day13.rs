@@ -34,8 +34,8 @@ fn parse_input() -> Vec<Game> {
 fn get_min_tokens(game: &Game) -> Option<u64> {
     // We want to solve the linear system:
     //
-    //  t1*a + t2*b = y1
-    //  t1*c + t2*d = y2
+    //  t1*a + t2*c = y1
+    //  t1*b + t2*d = y2
     //
     // with positive integer solutions in y1,y2. This can be represented by the (matrix)
     // equation:
