@@ -1,10 +1,13 @@
-use std::collections::{BinaryHeap, HashSet};
+use std::{
+    collections::{BinaryHeap, HashSet},
+    hash::Hash,
+};
 
 use aoc_rust_2024::io;
 
 use Direction::*;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum Direction {
     North,
     South,
@@ -12,7 +15,7 @@ enum Direction {
     West,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct ReindeerPosition {
     location: (usize, usize),
     direction: Direction,
@@ -71,15 +74,26 @@ impl ReindeerPosition {
 }
 
 impl Map {
-    fn find_shortest_paths(&self) -> (u32, Vec<Vec<ReindeerPosition>>) {
+    fn find_shortest_paths(&self) -> (u32, u32) {
         let height = self.data.len();
         let width = self.data[0].len();
+        let mut best_distance = None;
         let mut distances = vec![vec![[u32::MAX, u32::MAX, u32::MAX, u32::MAX]; width]; height];
-        let mut best_distance = u32::MAX;
-        let mut best_paths = vec![];
+        let mut prev_nodes = vec![
+            vec![
+                [
+                    HashSet::new(),
+                    HashSet::new(),
+                    HashSet::new(),
+                    HashSet::new(),
+                ];
+                width
+            ];
+            height
+        ];
 
         let mut nodes = BinaryHeap::new();
-        nodes.push((0i32, self.start_pos, vec![]));
+        nodes.push((0i32, self.start_pos, None));
 
         let dir_to_slot = |dir: Direction| match dir {
             North => 0,
@@ -88,33 +102,70 @@ impl Map {
             West => 3,
         };
 
-        while let Some((distance, pos, mut path)) = nodes.pop() {
+        while let Some((distance, pos, prev_pos)) = nodes.pop() {
             let distance = distance.unsigned_abs(); // using a max-heap, so negative distances are stored
+
+            if best_distance.is_some_and(|best_distance| distance > best_distance) {
+                // We've hit the first node after iterating all paths with distance <= best_distance
+                // time to aggreate results and return.
+                let mut best_positions = HashSet::new();
+                let mut stack: Vec<ReindeerPosition> = vec![
+                    ReindeerPosition {
+                        location: self.end_pos,
+                        direction: North,
+                    },
+                    ReindeerPosition {
+                        location: self.end_pos,
+                        direction: South,
+                    },
+                    ReindeerPosition {
+                        location: self.end_pos,
+                        direction: East,
+                    },
+                    ReindeerPosition {
+                        location: self.end_pos,
+                        direction: West,
+                    },
+                ];
+
+                while let Some(pos) = stack.pop() {
+                    best_positions.insert(pos.location);
+
+                    let (row, col) = pos.location;
+                    let slot = dir_to_slot(pos.direction);
+                    for &prev in &prev_nodes[row][col][slot] {
+                        stack.push(prev);
+                    }
+                }
+                return (best_distance.unwrap(), best_positions.len() as u32);
+            }
+
             let (row, col) = pos.location;
             let slot = dir_to_slot(pos.direction);
-            path.push(pos);
-
             if pos.location == self.end_pos {
-                if best_distance == u32::MAX {
-                    best_distance = distance;
-                } else if distance > best_distance {
-                    return (best_distance, best_paths);
+                prev_nodes[row][col][slot].insert(prev_pos.unwrap());
+                if best_distance.is_none() {
+                    best_distance = Some(distance);
                 }
-                best_paths.push(path);
             } else if distance <= distances[row][col][slot] {
-                distances[row][col][slot] = distance;
+                if distance < distances[row][col][slot] {
+                    // new best distance to this node
+                    prev_nodes[row][col][slot].clear();
+                    distances[row][col][slot] = distance;
+                }
+                if let Some(prev) = prev_pos {
+                    prev_nodes[row][col][slot].insert(prev);
+                }
 
-                // only add next nodes if it's the first time we've visited this node
                 let long_distance = -((distance + 1000) as i32);
                 let short_distance = -((distance + 1) as i32);
-                path.push(pos);
-                nodes.push((long_distance, pos.turn_clockwise(), path.clone()));
-                nodes.push((long_distance, pos.turn_anticlockwise(), path.clone()));
+                nodes.push((long_distance, pos.turn_clockwise(), Some(pos)));
+                nodes.push((long_distance, pos.turn_anticlockwise(), Some(pos)));
 
                 let forward_pos = pos.move_forward();
                 let (fp_row, fp_col) = forward_pos.location;
                 if self.data[fp_row][fp_col] != b'#' {
-                    nodes.push((short_distance, pos.move_forward(), path.clone()));
+                    nodes.push((short_distance, pos.move_forward(), Some(pos)));
                 }
             }
         }
@@ -157,12 +208,8 @@ fn part1_solution() -> u32 {
 
 fn part2_solution() -> u32 {
     let map = parse_input();
-    let (_, paths) = map.find_shortest_paths();
-    let best_spots: HashSet<_> = paths
-        .iter()
-        .flat_map(|path| path.iter().map(|pos| pos.location))
-        .collect();
-    best_spots.len() as u32
+    let (_, num_best_spots_to_sit) = map.find_shortest_paths();
+    num_best_spots_to_sit
 }
 
 fn main() {
