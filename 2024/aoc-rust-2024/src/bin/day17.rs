@@ -101,7 +101,7 @@ fn part1_solution() -> String {
     output.iter().join(",")
 }
 
-fn part2_solution() -> u64 {
+fn _part2_solution_slow() -> u64 {
     let mut cpu = parse_input();
     let (b, c) = (cpu.b, cpu.c);
 
@@ -122,7 +122,27 @@ fn part2_solution() -> u64 {
     panic!("No solution!")
 }
 
+fn part2_solution_fast() -> u64 {
+    let mut cpu = parse_input();
+    let mut stack = Vec::from([(0, cpu.program.len())]);
+
+    while let Some((acc, values_left)) = stack.pop() {
+        if values_left == 0 {
+            return acc;
+        }
+        let target = cpu.program[values_left - 1];
+        for bits in (0..8).rev() {
+            let val = (acc << 3) + bits;
+            cpu.reset(val, 0, 0);
+            if cpu.run(false)[0] == target {
+                stack.push((val, values_left - 1));
+            }
+        }
+    }
+    panic!("No solution!")
+}
+
 fn main() {
     println!("{}", part1_solution());
-    println!("{}", part2_solution());
+    println!("{}", part2_solution_fast());
 }
