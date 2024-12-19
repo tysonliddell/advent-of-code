@@ -76,7 +76,7 @@ fn part1_solution() -> usize {
     get_shortest_path_length(&positions[..1024], start, end, MAX_MEM_ROW, MAX_MEM_COL).unwrap()
 }
 
-fn part2_solution() -> (usize, usize) {
+fn _part2_solution() -> (usize, usize) {
     let positions = parse_input();
     let start = (0, 0);
     let end = (MAX_MEM_ROW, MAX_MEM_COL);
@@ -135,7 +135,7 @@ fn part2_solution_fast() -> (usize, usize) {
                 min_col = min_col.min(col);
                 max_col = max_col.max(col);
             }
-            if min_row == 0 && max_row == MAX_MEM_ROW {
+            if min_row == 0 && max_row == MAX_MEM_ROW || min_col == 0 && max_col == MAX_MEM_COL {
                 return byte_pos;
             }
         }
