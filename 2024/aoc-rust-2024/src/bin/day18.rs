@@ -108,7 +108,22 @@ fn part2_solution_fast() -> (usize, usize) {
     let mut cells: PartitionVec<bool> = partition_vec![false; (MAX_MEM_ROW+1) * (MAX_MEM_COL+1)];
 
     let pos_to_cell_id = |(row, col)| row * (MAX_MEM_COL + 1) + col;
-    let cell_id_to_pos = |id| (id / (MAX_MEM_COL + 1), id % (MAX_MEM_COL + 1));
+
+    // make entire bottom left corner a single region
+    for row in 0..MAX_MEM_ROW {
+        cells.union(0, pos_to_cell_id((row, 0)));
+    }
+    for col in 0..MAX_MEM_COL {
+        cells.union(0, pos_to_cell_id((MAX_MEM_ROW, col)));
+    }
+
+    // make entire top right corner a single region
+    for row in 1..=MAX_MEM_ROW {
+        cells.union(MAX_MEM_COL, pos_to_cell_id((row, MAX_MEM_COL)));
+    }
+    for col in 1..=MAX_MEM_COL {
+        cells.union(MAX_MEM_COL, pos_to_cell_id((0, col)));
+    }
 
     for byte_pos in positions {
         let new_id = pos_to_cell_id(byte_pos);
@@ -126,20 +141,12 @@ fn part2_solution_fast() -> (usize, usize) {
             }
         }
 
-        for region in cells.all_sets() {
-            let (mut min_row, mut max_row) = (MAX_MEM_ROW, 0);
-            let (mut min_col, mut max_col) = (MAX_MEM_COL, 0);
-
-            for (call_id, _) in region {
-                let (row, col) = cell_id_to_pos(call_id);
-                min_row = min_row.min(row);
-                max_row = max_row.max(row);
-                min_col = min_col.min(col);
-                max_col = max_col.max(col);
-            }
-            if min_row == 0 && max_row == MAX_MEM_ROW || min_col == 0 && max_col == MAX_MEM_COL {
-                return byte_pos;
-            }
+        if cells.same_set(
+            pos_to_cell_id((0, 0)),
+            pos_to_cell_id((MAX_MEM_ROW, MAX_MEM_COL)),
+        ) {
+            // bottom left region and top right region are now connected. Path blocked.
+            return byte_pos;
         }
     }
 
