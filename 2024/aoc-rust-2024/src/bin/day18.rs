@@ -107,8 +107,11 @@ fn part2_solution_fast() -> (usize, usize) {
     let positions = parse_input();
     let mut cells: PartitionVec<bool> = partition_vec![false; (MAX_MEM_ROW+1) * (MAX_MEM_COL+1)];
 
+    let pos_to_cell_id = |(row, col)| row * (MAX_MEM_COL + 1) + col;
+    let cell_id_to_pos = |id| (id / (MAX_MEM_COL + 1), id % (MAX_MEM_COL + 1));
+
     for byte_pos in positions {
-        let new_id = byte_pos.0 * (MAX_MEM_COL + 1) + byte_pos.1;
+        let new_id = pos_to_cell_id(byte_pos);
         if cells[new_id] {
             continue; // we've already added this falling byte, nothing to do
         }
@@ -116,8 +119,8 @@ fn part2_solution_fast() -> (usize, usize) {
         cells[new_id] = true;
 
         // Merge cells that are touching the new position
-        for (row, col) in get_9_cell_square(byte_pos, MAX_MEM_ROW, MAX_MEM_COL) {
-            let id = row * (MAX_MEM_COL + 1) + col;
+        for pos in get_9_cell_square(byte_pos, MAX_MEM_ROW, MAX_MEM_COL) {
+            let id = pos_to_cell_id(pos);
             if cells[id] {
                 cells.union(new_id, id);
             }
@@ -127,9 +130,8 @@ fn part2_solution_fast() -> (usize, usize) {
             let (mut min_row, mut max_row) = (MAX_MEM_ROW, 0);
             let (mut min_col, mut max_col) = (MAX_MEM_COL, 0);
 
-            for (index, _) in region {
-                let row = index / (MAX_MEM_COL + 1);
-                let col = index % (MAX_MEM_COL + 1);
+            for (call_id, _) in region {
+                let (row, col) = cell_id_to_pos(call_id);
                 min_row = min_row.min(row);
                 max_row = max_row.max(row);
                 min_col = min_col.min(col);
