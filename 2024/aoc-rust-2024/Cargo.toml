@@ -7,3 +7,4 @@ edition = "2021"
 cached = { version = "0.54.0", features = ["proc_macro"] }
 itertools = "0.13.0"
 regex = "1.11.1"
+trie-rs = "0.4.2"
