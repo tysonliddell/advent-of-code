@@ -1,0 +1,5 @@
+# 2025 Advent of Code in Zig
+## Running
+Use `zig run dayX.zig` to compile and run.
+
+Solutions were built with zig 0.16.0-dev.1484.
