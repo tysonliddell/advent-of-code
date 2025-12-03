@@ -70,8 +70,8 @@ fn parse_input(input: []const u8) ![][2]u64 {
 
     const trimmed_input = std.mem.trim(u8, input, &[_]u8{'\n'});
     var pair_it = std.mem.splitScalar(u8, trimmed_input, ',');
-    while (pair_it.next()) |line| {
-        var num_it = std.mem.splitScalar(u8, line, '-');
+    while (pair_it.next()) |pair| {
+        var num_it = std.mem.splitScalar(u8, pair, '-');
         const first = try std.fmt.parseInt(u64, num_it.first(), 10);
         const second = try std.fmt.parseInt(u64, num_it.rest(), 10);
 
@@ -109,13 +109,13 @@ test "testing is_repeated_num" {
 }
 
 test "testing part 1 with test input" {
-    const rotations = try parse_input(test_input);
-    const result = solve_part_1(rotations);
+    const ranges = try parse_input(test_input);
+    const result = solve_part_1(ranges);
     try std.testing.expectEqual(1227775554, result);
 }
 
 test "testing part 2 with test input" {
-    const rotations = try parse_input(test_input);
-    const result = solve_part_2(rotations);
+    const ranges = try parse_input(test_input);
+    const result = solve_part_2(ranges);
     try std.testing.expectEqual(4174379265, result);
 }
