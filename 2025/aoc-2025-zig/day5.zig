@@ -27,27 +27,26 @@ fn solve_part_1(sorted_ranges: []Range, ids: []Id) usize {
 }
 
 fn solve_part_2(sorted_ranges: []Range) usize {
-    var up_to: usize = 0;
+    var done: usize = 0;
     var fresh_count: usize = 0;
     for (sorted_ranges) |range| {
-        const min, const max = range;
-        if (min > up_to) {
-            fresh_count += max - min + 1;
-            up_to = max;
-        } else if (min == up_to) {
-            fresh_count += max - min + 1 - 1;
-            up_to = max;
-        } else if (max > up_to) { // min < up_to
-            fresh_count += max - up_to;
-            up_to = max;
+        var min, const max = range;
+        if (max <= done) {
+            // range has already been fully counted
+            continue;
+        } else if (min <= done) {
+            // skip the part of range already counted
+            min = done + 1;
         }
+
+        fresh_count += max - min + 1;
+        done = max;
     }
     return fresh_count;
 }
 
 fn bin_search_freshness(ranges: []const Range, target: Id) ?Range {
     var slice: []const Range = ranges;
-    var range: ?Range = null;
 
     while (slice.len > 0) {
         var mid = slice.len / 2;
@@ -60,13 +59,12 @@ fn bin_search_freshness(ranges: []const Range, target: Id) ?Range {
         if (target < r_min) {
             slice = slice[0..mid];
         } else if (target <= r_max) {
-            range = .{ r_min, r_max };
-            break;
+            return .{ r_min, r_max };
         } else {
             slice = slice[mid + 1 ..];
         }
     }
-    return range;
+    return null;
 }
 
 fn rangeLessThanFn(_: void, a: Range, b: Range) bool {
