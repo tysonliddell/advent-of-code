@@ -13,8 +13,12 @@ pub fn main() !void {
 }
 
 fn solve_part_1_and_2(line_it: *LineIterator) struct { usize, usize } {
-    var timeline_counts: [MAX_LINE_WIDTH]usize = .{0} ** MAX_LINE_WIDTH;
-    var prev_counts: [MAX_LINE_WIDTH]usize = undefined;
+    var buffer1: [MAX_LINE_WIDTH]usize = undefined;
+    var buffer2: [MAX_LINE_WIDTH]usize = undefined;
+
+    var timeline_counts = &buffer1;
+    var prev_counts = &buffer2;
+    @memset(timeline_counts, 0);
 
     const top_line = line_it.next().?;
     const start_pos = std.mem.indexOfScalar(u8, top_line, 'S').?;
@@ -23,8 +27,12 @@ fn solve_part_1_and_2(line_it: *LineIterator) struct { usize, usize } {
     var num_splits: usize = 0;
     while (line_it.next()) |line| {
         // swap buffers
-        prev_counts, timeline_counts = .{ timeline_counts, prev_counts };
-        @memset(&timeline_counts, 0);
+        // prev_counts, timeline_counts = .{ timeline_counts, prev_counts };
+        // ^ this does not work - see https://ziglang.org/documentation/0.15.2/#Result-Locations.
+        const tmp = timeline_counts;
+        timeline_counts = prev_counts;
+        prev_counts = tmp;
+        @memset(timeline_counts, 0);
 
         for (line, 0..) |c, pos| {
             if (c == '^') {
