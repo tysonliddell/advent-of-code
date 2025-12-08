@@ -15,7 +15,7 @@ pub fn main() !void {
 fn solve_part_1_and_2(line_it: *LineIterator) struct { usize, usize } {
     const Buffer = [MAX_LINE_WIDTH]usize;
     var buffer1: Buffer, var buffer2: Buffer = .{ undefined, undefined };
-    var timeline_counts, var prev_counts = .{ &buffer1, &buffer2 };
+    var timeline_counts, var prev_timeline_counts = .{ &buffer1, &buffer2 };
     @memset(timeline_counts, 0);
 
     const top_line = line_it.next().?;
@@ -25,19 +25,19 @@ fn solve_part_1_and_2(line_it: *LineIterator) struct { usize, usize } {
     var num_splits: usize = 0;
     while (line_it.next()) |line| {
         // swap buffers (pointers, not underlying buffer memory)
-        std.mem.swap(*Buffer, &timeline_counts, &prev_counts);
+        std.mem.swap(*Buffer, &timeline_counts, &prev_timeline_counts);
         @memset(timeline_counts, 0);
 
         for (line, 0..) |c, pos| {
             if (c == '^') {
-                if (prev_counts[pos] > 0) {
+                if (prev_timeline_counts[pos] > 0) {
                     num_splits += 1;
                 }
-                timeline_counts[pos - 1] += prev_counts[pos]; // TODO: Add bounds checking!
+                timeline_counts[pos - 1] += prev_timeline_counts[pos]; // TODO: Add bounds checking!
                 timeline_counts[pos] = 0;
-                timeline_counts[pos + 1] += prev_counts[pos]; // TODO: Add bounds checking!
+                timeline_counts[pos + 1] += prev_timeline_counts[pos]; // TODO: Add bounds checking!
             } else {
-                timeline_counts[pos] += prev_counts[pos];
+                timeline_counts[pos] += prev_timeline_counts[pos];
             }
         }
     }
