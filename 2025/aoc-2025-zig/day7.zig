@@ -13,11 +13,9 @@ pub fn main() !void {
 }
 
 fn solve_part_1_and_2(line_it: *LineIterator) struct { usize, usize } {
-    var buffer1: [MAX_LINE_WIDTH]usize = undefined;
-    var buffer2: [MAX_LINE_WIDTH]usize = undefined;
-
-    var timeline_counts = &buffer1;
-    var prev_counts = &buffer2;
+    const Buffer = [MAX_LINE_WIDTH]usize;
+    var buffer1: Buffer, var buffer2: Buffer = .{ undefined, undefined };
+    var timeline_counts, var prev_counts = .{ &buffer1, &buffer2 };
     @memset(timeline_counts, 0);
 
     const top_line = line_it.next().?;
@@ -26,12 +24,8 @@ fn solve_part_1_and_2(line_it: *LineIterator) struct { usize, usize } {
 
     var num_splits: usize = 0;
     while (line_it.next()) |line| {
-        // swap buffers
-        // prev_counts, timeline_counts = .{ timeline_counts, prev_counts };
-        // ^ this does not work - see https://ziglang.org/documentation/0.15.2/#Result-Locations.
-        const tmp = timeline_counts;
-        timeline_counts = prev_counts;
-        prev_counts = tmp;
+        // swap buffers (pointers, not underlying buffer memory)
+        std.mem.swap(*Buffer, &timeline_counts, &prev_counts);
         @memset(timeline_counts, 0);
 
         for (line, 0..) |c, pos| {
