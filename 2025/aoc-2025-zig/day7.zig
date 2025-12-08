@@ -1,4 +1,6 @@
 const std = @import("std");
+const sum = @import("./util.zig").sum;
+
 const MAX_LINE_WIDTH = 200;
 
 const LineIterator = std.mem.SplitIterator(u8, .scalar);
@@ -42,10 +44,7 @@ fn solve_part_1_and_2(line_it: *LineIterator) struct { usize, usize } {
         }
     }
 
-    var num_timelines: usize = 0;
-    for (timeline_counts) |count| {
-        num_timelines += count;
-    }
+    const num_timelines: usize = sum(u64, timeline_counts);
 
     return .{ num_splits, num_timelines };
 }

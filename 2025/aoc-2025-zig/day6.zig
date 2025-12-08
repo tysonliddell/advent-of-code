@@ -1,4 +1,7 @@
 const std = @import("std");
+const sum = @import("./util.zig").sum;
+const mul = @import("./util.zig").mul;
+
 const MAX_LINES = 10;
 
 const Grid = []const []const u8;
@@ -35,14 +38,8 @@ fn solve_part_1_and_2(comptime input: []const u8) struct { u64, u64 } {
             total_vertical_solution += current_verical_solution;
 
             switch (curr_op) {
-                '+' => {
-                    for (horiz_values) |v| total_horizontal_solution += v;
-                },
-                '*' => {
-                    var product: u64 = 1;
-                    for (horiz_values) |v| product *= v;
-                    total_horizontal_solution += product;
-                },
+                '+' => total_horizontal_solution += sum(u64, horiz_values),
+                '*' => total_horizontal_solution += mul(u64, horiz_values),
                 else => unreachable,
             }
 

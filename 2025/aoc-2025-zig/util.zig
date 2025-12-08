@@ -25,3 +25,19 @@ pub fn grid_neighbours(row: usize, col: usize, height: usize, width: usize) [][2
     }
     return neighbours[0..neighbours_count];
 }
+
+pub fn sum(T: type, values: []const T) T {
+    var total: T = 0;
+    for (values) |v| {
+        total += v;
+    }
+    return total;
+}
+
+pub fn mul(T: type, values: []const T) T {
+    var total: T = 1;
+    for (values) |v| {
+        total *= v;
+    }
+    return total;
+}
