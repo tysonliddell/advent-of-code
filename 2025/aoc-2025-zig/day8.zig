@@ -121,11 +121,16 @@ fn solve_part_2(line_it: *LineIterator) u64 {
     var junction_connections = std.ArrayList(Connection).initCapacity(allocator, MAX_NUM_JUNCTION_BOXES) catch unreachable;
     var new_connections = std.ArrayList(Connection).initCapacity(allocator, MAX_NUM_JUNCTION_BOXES) catch unreachable;
     var jid_to_circuit_id = std.ArrayList(usize).initCapacity(allocator, MAX_NUM_JUNCTION_BOXES) catch unreachable;
+    _ = jid_to_circuit_id.addOneAssumeCapacity();
     defer junctions.clearAndFree(allocator);
     defer best_connections.clearAndFree(allocator);
     defer junction_connections.clearAndFree(allocator);
     defer new_connections.clearAndFree(allocator);
     defer jid_to_circuit_id.clearAndFree(allocator);
+
+    var pBest_connections = &best_connections;
+    var pJunction_connections = &junction_connections;
+    var pNew_connections = &new_connections;
 
     while (line_it.next()) |line| {
         const point = point_from_str(line) catch unreachable;
@@ -133,28 +138,30 @@ fn solve_part_2(line_it: *LineIterator) u64 {
     }
 
     for (junctions.items[1..], 1..) |junction_to_add, jid| {
+        std.mem.swap(@TypeOf(pBest_connections), &pBest_connections, &pNew_connections);
+
         // get all possible new connections when adding this junction
-        junction_connections.clearRetainingCapacity();
+        pJunction_connections.clearRetainingCapacity();
         for (junctions.items[0..jid], 0..) |other_point, other_jid| {
-            junction_connections.appendAssumeCapacity(Connection{
+            pJunction_connections.appendAssumeCapacity(Connection{
                 .distance = junction_to_add.squared_distance(other_point),
                 .j1_id = jid,
                 .j2_id = other_jid,
             });
         }
 
-        std.mem.sortUnstable(Connection, junction_connections.items, {}, Connection.lessThan);
+        std.mem.sortUnstable(Connection, pJunction_connections.items, {}, Connection.lessThan);
 
         // recalulate best connections
-        new_connections.clearRetainingCapacity();
-        var bc_left = best_connections.items[0..];
-        var jc_left = junction_connections.items[0..];
+        pNew_connections.clearRetainingCapacity();
+        var bc_left = pBest_connections.items[0..];
+        var jc_left = pJunction_connections.items[0..];
 
         _ = jid_to_circuit_id.addOneAssumeCapacity();
         for (0..jid + 1) |i| {
             jid_to_circuit_id.items[i] = i;
         }
-        while (new_connections.items.len < jid) {
+        while (pNew_connections.items.len < jid) {
             const d1 = if (bc_left.len > 0) bc_left[0].distance else std.math.inf(f64);
             const d2 = if (jc_left.len > 0) jc_left[0].distance else std.math.inf(f64);
             var conn: Connection = undefined;
@@ -174,16 +181,12 @@ fn solve_part_2(line_it: *LineIterator) u64 {
                         jid_to_circuit_id.items[j] = new_cid;
                     }
                 }
-                new_connections.appendAssumeCapacity(conn);
+                pNew_connections.appendAssumeCapacity(conn);
             }
         }
-        // best_connections = new_connections; // FIXME: Optimise this copy (swap pointers?)
-        // FIXME: Optimise this copy (swap pointers?)
-        _ = best_connections.addOneAssumeCapacity();
-        @memcpy(best_connections.items, new_connections.items);
     }
 
-    const last_connection = best_connections.getLast();
+    const last_connection = pBest_connections.getLast();
     const p1 = junctions.items[last_connection.j1_id];
     const p2 = junctions.items[last_connection.j2_id];
     return @intFromFloat(p1.x * p2.x);
