@@ -6,7 +6,7 @@ const PUZZLE_INPUT = @embedFile("./puzzle_input/d8");
 
 const MAX_NUM_JUNCTION_BOXES = 1000;
 const MAX_NUM_CONNECTIONS = MAX_NUM_JUNCTION_BOXES * (MAX_NUM_JUNCTION_BOXES - 1);
-var alloc_buffer: [300_000]u8 = undefined;
+var alloc_buffer: [200_000]u8 = undefined;
 
 const LineIterator = std.mem.SplitIterator(u8, .scalar);
 
@@ -22,8 +22,6 @@ pub fn main() !void {
 
 const Connection = struct {
     distance: f64,
-    p1: Vec3,
-    p2: Vec3,
     j1_id: usize,
     j2_id: usize,
 
@@ -77,8 +75,6 @@ fn solve_part_1(line_it: *LineIterator, num_connections: usize, num_circuits: us
                     .distance = distance,
                     .j1_id = j1_id,
                     .j2_id = j2_id,
-                    .p1 = junction1,
-                    .p2 = junction2,
                 }) catch unreachable;
             }
         }
@@ -144,8 +140,6 @@ fn solve_part_2(line_it: *LineIterator) u64 {
                 .distance = junction_to_add.distance(other_point),
                 .j1_id = jid,
                 .j2_id = other_jid,
-                .p1 = junction_to_add,
-                .p2 = other_point,
             });
         }
 
@@ -190,7 +184,9 @@ fn solve_part_2(line_it: *LineIterator) u64 {
     }
 
     const last_connection = best_connections.getLast();
-    return @intFromFloat(last_connection.p1.x * last_connection.p2.x);
+    const p1 = junctions.items[last_connection.j1_id];
+    const p2 = junctions.items[last_connection.j2_id];
+    return @intFromFloat(p1.x * p2.x);
 }
 
 fn parse_input(comptime input: []const u8) LineIterator {
