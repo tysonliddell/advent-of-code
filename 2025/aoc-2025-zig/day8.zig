@@ -120,13 +120,11 @@ fn solve_part_2(line_it: *LineIterator) u64 {
     var best_connections = std.ArrayList(Connection).initCapacity(allocator, MAX_NUM_JUNCTION_BOXES) catch unreachable;
     var junction_connections = std.ArrayList(Connection).initCapacity(allocator, MAX_NUM_JUNCTION_BOXES) catch unreachable;
     var new_connections = std.ArrayList(Connection).initCapacity(allocator, MAX_NUM_JUNCTION_BOXES) catch unreachable;
-    var jid_to_circuit_id = std.ArrayList(usize).initCapacity(allocator, MAX_NUM_JUNCTION_BOXES) catch unreachable;
-    _ = jid_to_circuit_id.addOneAssumeCapacity();
+    var jid_to_circuit_id: [MAX_NUM_JUNCTION_BOXES]usize = undefined;
     defer junctions.clearAndFree(allocator);
     defer best_connections.clearAndFree(allocator);
     defer junction_connections.clearAndFree(allocator);
     defer new_connections.clearAndFree(allocator);
-    defer jid_to_circuit_id.clearAndFree(allocator);
 
     var pBest_connections = &best_connections;
     var pJunction_connections = &junction_connections;
@@ -157,9 +155,9 @@ fn solve_part_2(line_it: *LineIterator) u64 {
         var bc_left = pBest_connections.items[0..];
         var jc_left = pJunction_connections.items[0..];
 
-        _ = jid_to_circuit_id.addOneAssumeCapacity();
-        for (0..jid + 1) |i| {
-            jid_to_circuit_id.items[i] = i;
+        const jid_to_circuit_id_slice = jid_to_circuit_id[0 .. jid + 1];
+        for (jid_to_circuit_id_slice, 0..) |_, i| {
+            jid_to_circuit_id_slice[i] = i;
         }
         while (pNew_connections.items.len < jid) {
             const d1 = if (bc_left.len > 0) bc_left[0].distance else std.math.inf(f64);
@@ -173,12 +171,12 @@ fn solve_part_2(line_it: *LineIterator) u64 {
                 jc_left = jc_left[1..];
             }
             const j1, const j2 = .{ conn.j1_id, conn.j2_id };
-            if (jid_to_circuit_id.items[j1] != jid_to_circuit_id.items[j2]) {
-                const old_cid = jid_to_circuit_id.items[j2];
-                const new_cid = jid_to_circuit_id.items[j1];
-                for (jid_to_circuit_id.items, 0..) |c, j| {
+            if (jid_to_circuit_id_slice[j1] != jid_to_circuit_id_slice[j2]) {
+                const old_cid = jid_to_circuit_id_slice[j2];
+                const new_cid = jid_to_circuit_id_slice[j1];
+                for (jid_to_circuit_id_slice, 0..) |c, j| {
                     if (c == old_cid) {
-                        jid_to_circuit_id.items[j] = new_cid;
+                        jid_to_circuit_id_slice[j] = new_cid;
                     }
                 }
                 pNew_connections.appendAssumeCapacity(conn);
