@@ -6,10 +6,11 @@ pub const Vec3 = struct {
     z: f64,
 
     const Self = @This();
-    pub fn distance(self: Self, other: Self) f64 {
-        return math.sqrt(math.pow(f64, self.x - other.x, 2) +
-            math.pow(f64, self.y - other.y, 2) +
-            math.pow(f64, self.z - other.z, 2));
+    pub fn squared_distance(self: Self, other: Self) f64 {
+        const dx = self.x - other.x;
+        const dy = self.y - other.y;
+        const dz = self.z - other.z;
+        return dx * dx + dy * dy + dz * dz;
     }
 
     pub fn eq(self: Self, other: Self) bool {

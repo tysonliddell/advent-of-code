@@ -63,7 +63,7 @@ fn solve_part_1(line_it: *LineIterator, num_connections: usize, num_circuits: us
 
     for (junctions.items, 0..) |junction1, j1_id| {
         for (junctions.items[j1_id + 1 ..], j1_id + 1..) |junction2, j2_id| {
-            const distance = junction1.distance(junction2);
+            const distance = junction1.squared_distance(junction2);
             if (connections_max_heap.items.len == num_connections) {
                 if (distance < connections_max_heap.peek().?.distance) {
                     _ = connections_max_heap.remove();
@@ -108,7 +108,7 @@ fn solve_part_1(line_it: *LineIterator, num_connections: usize, num_circuits: us
         circuit_sizes.items[c_id] += 1;
     }
 
-    std.mem.sort(usize, circuit_sizes.items, {}, std.sort.desc(usize));
+    std.mem.sortUnstable(usize, circuit_sizes.items, {}, std.sort.desc(usize));
     return mul(usize, circuit_sizes.items[0..num_circuits]);
 }
 
@@ -137,22 +137,22 @@ fn solve_part_2(line_it: *LineIterator) u64 {
         junction_connections.clearRetainingCapacity();
         for (junctions.items[0..jid], 0..) |other_point, other_jid| {
             junction_connections.appendAssumeCapacity(Connection{
-                .distance = junction_to_add.distance(other_point),
+                .distance = junction_to_add.squared_distance(other_point),
                 .j1_id = jid,
                 .j2_id = other_jid,
             });
         }
 
-        std.mem.sort(Connection, junction_connections.items, {}, Connection.lessThan);
+        std.mem.sortUnstable(Connection, junction_connections.items, {}, Connection.lessThan);
 
         // recalulate best connections
         new_connections.clearRetainingCapacity();
         var bc_left = best_connections.items[0..];
         var jc_left = junction_connections.items[0..];
 
-        jid_to_circuit_id.clearRetainingCapacity();
+        _ = jid_to_circuit_id.addOneAssumeCapacity();
         for (0..jid + 1) |i| {
-            jid_to_circuit_id.appendAssumeCapacity(i);
+            jid_to_circuit_id.items[i] = i;
         }
         while (new_connections.items.len < jid) {
             const d1 = if (bc_left.len > 0) bc_left[0].distance else std.math.inf(f64);
