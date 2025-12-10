@@ -1,9 +1,12 @@
 const std = @import("std");
 
+const PUZZLE_INPUT = @embedFile("./puzzle_input/d9");
 const MAX_NUM_POSITIONS = 500;
+
 const Position = struct { x: u32, y: u32 };
 
-const PUZZLE_INPUT = @embedFile("./puzzle_input/d9");
+var cache: *std.AutoHashMap(Position, bool) = undefined;
+
 pub fn main() !void {
     var position_buf: [MAX_NUM_POSITIONS]Position = undefined;
     const positions = try parse_input(PUZZLE_INPUT, &position_buf);
@@ -32,8 +35,13 @@ fn solve_part_1(positions: []Position) u64 {
     return max_area;
 }
 
-// Solution generated after 11 mins: 146950408
 fn solve_part_2(positions: []Position) u64 {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    var map = std.AutoHashMap(Position, bool).init(allocator);
+    cache = &map;
+    defer cache.deinit();
+
     var max_area: u64 = 0;
     var num_to_check = (positions.len * (positions.len - 1)) / 2;
     for (positions, 0..) |pos1, pos_id| {
@@ -92,15 +100,19 @@ fn is_rectangle_inside(pos1: Position, pos2: Position, red_tiles: []Position) bo
 // there are an odd number of horizontal edges above/below it.
 // p1,p3 above are interior points, and p3 is an exterior point.
 fn is_position_inside(pos: Position, red_tiles: []Position) bool {
+    if (cache.get(pos)) |is_inside| {
+        return is_inside;
+    }
+
     var num_horiz_edge_above: usize = 0;
-    for (red_tiles[0 .. red_tiles.len - 1], red_tiles[1..]) |tile1, tile2| {
+    const is_inside: bool = for (red_tiles[0 .. red_tiles.len - 1], red_tiles[1..]) |tile1, tile2| {
         if (tile1.y != tile2.y) {
             // this is a vertical edge
             std.debug.assert(tile1.x == tile2.x);
             const x = tile1.x;
             const min, const max = if (tile1.y < tile2.y) .{ tile1.y, tile2.y } else .{ tile2.y, tile1.y };
             if (pos.x == x and pos.y >= min and pos.y <= max) {
-                return true; // position lies in veritical edge
+                break true; // position lies in veritical edge
             } else if (pos.x == x and max < pos.y) {
                 num_horiz_edge_above += 1; // hack to keep parity correct
             }
@@ -113,13 +125,14 @@ fn is_position_inside(pos: Position, red_tiles: []Position) bool {
         const min, const max = if (tile1.x < tile2.x) .{ tile1.x, tile2.x } else .{ tile2.x, tile1.x };
         if (y <= pos.y and pos.x >= min and pos.x <= max) {
             if (pos.y == y) {
-                return true; // position lies in horizontal edge
+                break true; // position lies in horizontal edge
             }
             num_horiz_edge_above += 1;
         }
-    }
+    } else (num_horiz_edge_above % 2 == 1);
 
-    return num_horiz_edge_above % 2 == 1;
+    cache.put(pos, is_inside) catch unreachable;
+    return is_inside;
 }
 
 fn parse_input(comptime input: []const u8, big_enough_slice: []Position) ![]Position {
