@@ -114,6 +114,13 @@ fn is_position_inside(pos: Position, red_tiles: []Position) bool {
             if (pos.x == x and pos.y >= min and pos.y <= max) {
                 break true; // position lies in veritical edge
             } else if (pos.x == x and max < pos.y) {
+                // handle this case
+                //
+                // ######
+                //      #
+                //      #######
+                //
+                //      . <---- point
                 num_horiz_edge_above += 1; // hack to keep parity correct
             }
             continue; // skip vertical edge
