@@ -32,13 +32,19 @@ fn solve_part_1(positions: []Position) u64 {
     return max_area;
 }
 
+// Solution generated after 11 mins: 146950408
 fn solve_part_2(positions: []Position) u64 {
     var max_area: u64 = 0;
+    var num_to_check = (positions.len * (positions.len - 1)) / 2;
     for (positions, 0..) |pos1, pos_id| {
         for (positions[pos_id + 1 ..]) |pos2| {
             const curr_area = area(pos1, pos2);
             if (curr_area > max_area and is_rectangle_inside(pos1, pos2, positions)) {
                 max_area = curr_area;
+            }
+            num_to_check -= 1;
+            if (num_to_check & 0xFF == 0xFF) {
+                std.debug.print("Number of rectangles to check: {}\n", .{num_to_check});
             }
         }
     }
@@ -49,13 +55,27 @@ fn is_rectangle_inside(pos1: Position, pos2: Position, red_tiles: []Position) bo
     const min_x, const max_x = if (pos1.x < pos2.x) .{ pos1.x, pos2.x } else .{ pos2.x, pos1.x };
     const min_y, const max_y = if (pos1.y < pos2.y) .{ pos1.y, pos2.y } else .{ pos2.y, pos1.y };
 
+    // check top and bottom rows of rectangle
     for (min_x..max_x + 1) |x| {
-        for (min_y..max_y + 1) |y| {
-            if (!is_position_inside(.{ .x = @intCast(x), .y = @intCast(y) }, red_tiles)) {
-                return false;
-            }
+        if (!is_position_inside(.{ .x = @intCast(x), .y = min_y }, red_tiles)) {
+            return false;
+        }
+        if (!is_position_inside(.{ .x = @intCast(x), .y = max_y }, red_tiles)) {
+            return false;
         }
     }
+
+    // check left and right columns of rectangle
+    for (min_y..max_y + 1) |y| {
+        if (!is_position_inside(.{ .x = min_x, .y = @intCast(y) }, red_tiles)) {
+            return false;
+        }
+        if (!is_position_inside(.{ .x = max_x, .y = @intCast(y) }, red_tiles)) {
+            return false;
+        }
+    }
+
+    // border of rectangle lies inside loop, so its interior does too!
     return true;
 }
 
