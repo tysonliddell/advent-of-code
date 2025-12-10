@@ -21,7 +21,7 @@ pub fn main() !void {
 }
 
 const Connection = struct {
-    distance: f64,
+    distance: u64,
     j1_id: usize,
     j2_id: usize,
 
@@ -38,9 +38,9 @@ fn qLessThan(context: void, a: Connection, b: Connection) std.math.Order {
 
 fn point_from_str(s: []const u8) !Vec3 {
     var it = std.mem.splitScalar(u8, s, ',');
-    const x = try std.fmt.parseFloat(f64, it.next().?);
-    const y = try std.fmt.parseFloat(f64, it.next().?);
-    const z = try std.fmt.parseFloat(f64, it.next().?);
+    const x = try std.fmt.parseInt(i32, it.next().?, 10);
+    const y = try std.fmt.parseInt(i32, it.next().?, 10);
+    const z = try std.fmt.parseInt(i32, it.next().?, 10);
     return Vec3{ .x = x, .y = y, .z = z };
 }
 
@@ -92,7 +92,7 @@ fn solve_part_1(line_it: *LineIterator, num_connections: usize, num_circuits: us
         const circuit_id_1 = junction_to_circuit_id.items[conn.j1_id];
         const circuit_id_2 = junction_to_circuit_id.items[conn.j2_id];
         if (circuit_id_1 != circuit_id_2) {
-            for (junction_to_circuit_id.items, 0..junction_to_circuit_id.items.len) |c_id, j_id| {
+            for (junction_to_circuit_id.items, 0..) |c_id, j_id| {
                 if (c_id == circuit_id_2) {
                     junction_to_circuit_id.items[j_id] = circuit_id_1;
                 }
@@ -160,8 +160,8 @@ fn solve_part_2(line_it: *LineIterator) u64 {
             jid_to_circuit_id_slice[i] = i;
         }
         while (pNew_connections.items.len < jid) {
-            const d1 = if (bc_left.len > 0) bc_left[0].distance else std.math.inf(f64);
-            const d2 = if (jc_left.len > 0) jc_left[0].distance else std.math.inf(f64);
+            const d1 = if (bc_left.len > 0) bc_left[0].distance else std.math.maxInt(u64);
+            const d2 = if (jc_left.len > 0) jc_left[0].distance else std.math.maxInt(u64);
             var conn: Connection = undefined;
             if (d1 < d2) {
                 conn = bc_left[0];
@@ -187,7 +187,7 @@ fn solve_part_2(line_it: *LineIterator) u64 {
     const last_connection = pBest_connections.getLast();
     const p1 = junctions.items[last_connection.j1_id];
     const p2 = junctions.items[last_connection.j2_id];
-    return @intFromFloat(p1.x * p2.x);
+    return @as(u64, @intCast(p1.x)) * @as(u64, @intCast(p2.x));
 }
 
 fn parse_input(comptime input: []const u8) LineIterator {
