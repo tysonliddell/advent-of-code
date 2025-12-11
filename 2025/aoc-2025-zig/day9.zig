@@ -98,7 +98,7 @@ fn is_rectangle_inside(pos1: Position, pos2: Position, red_tiles: []Position) bo
 // Since the curve forms a circuit, there must be an even total number of
 // horizontal lines. A given non-edge point lies in the interior if and only if
 // there are an odd number of horizontal edges above/below it.
-// p1,p3 above are interior points, and p3 is an exterior point.
+// p1,p3 above are interior points, and p2 is an exterior point.
 fn is_position_inside(pos: Position, red_tiles: []Position) bool {
     if (cache.get(pos)) |is_inside| {
         return is_inside;
